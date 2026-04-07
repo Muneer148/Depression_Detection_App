@@ -1,4 +1,3 @@
-# MindScope — Multimodal Depression Detection
 ---
 title: Depression App
 sdk: docker
