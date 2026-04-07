@@ -1,5 +1,6 @@
 ---
 title: Depression Detection
+app_port: 7860
 emoji: 👁
 colorFrom: indigo
 colorTo: purple
