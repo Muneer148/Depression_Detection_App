@@ -1,7 +1,7 @@
 FROM python:3.9-slim
 
 # Install audio tools the AI needs
-RUN apt-get update && apt-get install -y libsndfile1 ffmpeg
+RUN apt-get update && apt-get install -y libsndfile1 ffmpeg libgl1
 
 WORKDIR /app
 
