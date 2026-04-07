@@ -209,4 +209,4 @@ if __name__ == "__main__":
     Timer(2, open_browser).start()
     
     # Note: debug=False is better for shared apps to prevent accidental crashes
-    app.run(debug=False, host="0.0.0.0", port=5000, use_reloader=False)
+    app.run(debug=False, host="0.0.0.0", port=7860, use_reloader=False)
