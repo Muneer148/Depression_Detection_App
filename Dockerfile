@@ -9,6 +9,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Explicitly tell Docker to make sure the templates folder is in the right spot
+COPY templates/ /app/templates/
+
 # Copy all your project files
 COPY . .
 
