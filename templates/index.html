@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MindScope — Multimodal Depression Detection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=Figtree:wght@300;400;500;600&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:         #07090f;
+      --surface:    #0c1018;
+      --card:       #101520;
+      --card2:      #141b27;
+      --border:     #1c2840;
+      --border-hi:  #2a3f66;
+      --accent:     #4f8ef7;
+      --accent2:    #7c5cfc;
+      --glow:       rgba(79,142,247,0.12);
+      --glow2:      rgba(124,92,252,0.10);
+      --text:       #b8ccec;
+      --text-dim:   #4a6080;
+      --text-hi:    #e8f0ff;
+      --green:      #34d399;
+      --amber:      #fbbf24;
+      --red:        #f87171;
+      --r:          14px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Figtree', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Noise grain overlay ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0.35;
+    }
+
+    /* ── Grid ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(79,142,247,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79,142,247,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Ambient orbs ── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(140px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-a { width:500px; height:500px; background:#1a3a8f; opacity:0.16; top:-180px; left:-160px; }
+    .orb-b { width:380px; height:380px; background:#3b1f8a; opacity:0.13; bottom:-120px; right:-100px; }
+    .orb-c { width:260px; height:260px; background:#0e4f7a; opacity:0.12; top:45%; left:55%; }
+
+    /* ── Page wrapper ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 100px;
+    }
+
+    /* ════════════════════════════════
+       HEADER
+    ════════════════════════════════ */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 36px 0 44px;
+      border-bottom: 1px solid var(--border);
+      animation: fadeDown 0.7s ease both;
+    }
+
+    .brand { display: flex; align-items: center; gap: 16px; }
+
+    .brand-icon {
+      width: 46px; height: 46px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 13px;
+      display: grid; place-items: center;
+      font-size: 22px;
+      box-shadow: 0 0 32px rgba(79,142,247,0.35);
+      flex-shrink: 0;
+    }
+
+    .brand-name {
+      font-family: 'Fraunces', serif;
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-hi);
+      letter-spacing: -0.5px;
+    }
+
+    .brand-sub {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-top: 3px;
+    }
+
+    .status-pill {
+      display: flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border-hi);
+      background: var(--glow);
+      padding: 7px 16px;
+      border-radius: 40px;
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: blink 2s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ════════════════════════════════
+       HERO
+    ════════════════════════════════ */
+    .hero {
+      text-align: center;
+      padding: 56px 0 48px;
+      animation: fadeUp 0.8s 0.1s ease both;
+    }
+
+    .hero-label {
+      display: inline-block;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--border-hi);
+      padding: 6px 18px;
+      border-radius: 30px;
+      margin-bottom: 24px;
+      background: var(--glow);
+    }
+
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 300;
+      color: var(--text-hi);
+      line-height: 1.15;
+      letter-spacing: -1px;
+      margin-bottom: 18px;
+    }
+
+    h1 em {
+      font-style: italic;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-desc {
+      font-size: 15px;
+      color: var(--text-dim);
+      max-width: 520px;
+      margin: 0 auto 10px;
+      line-height: 1.7;
+    }
+
+    .disclaimer {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--amber);
+      background: rgba(251,191,36,0.07);
+      border: 1px solid rgba(251,191,36,0.2);
+      padding: 8px 18px;
+      border-radius: 30px;
+      margin-top: 20px;
+      letter-spacing: 0.3px;
+    }
+
+    /* ════════════════════════════════
+       MODALITY TABS
+    ════════════════════════════════ */
+    .modality-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 0;
+      padding: 20px 0 0;
+      animation: fadeUp 0.8s 0.2s ease both;
+    }
+
+    .mod-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: 12px 12px 0 0;
+      cursor: pointer;
+      transition: all 0.25s;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      position: relative;
+    }
+
+    .mod-tab.active {
+      background: var(--card2);
+      border-color: var(--border-hi);
+      color: var(--text-hi);
+    }
+
+    .mod-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+
+    .mod-tab:hover:not(.active) { border-color: var(--border-hi); color: var(--text); }
+
+    .tab-icon { font-size: 22px; }
+
+    .tab-badge {
+      position: absolute;
+      top: 10px; right: 10px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: none;
+    }
+    .tab-badge.filled { display: block; background: var(--green); }
+
+    /* ════════════════════════════════
+       MAIN FORM CARD
+    ════════════════════════════════ */
+    .form-card {
+      background: var(--card2);
+      border: 1px solid var(--border-hi);
+      border-radius: 0 0 18px 18px;
+      padding: 32px;
+      animation: fadeUp 0.8s 0.25s ease both;
+    }
+
+    /* Panel switching */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── Panel header ── */
+    .panel-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .panel-num {
+      width: 32px; height: 32px;
+      border-radius: 9px;
+      background: var(--glow);
+      border: 1px solid var(--border-hi);
+      display: grid; place-items: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .panel-title {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-hi);
+    }
+
+    .panel-desc { font-size: 12px; color: var(--text-dim); margin-top: 3px; line-height: 1.5; }
+
+    /* ── Textarea ── */
+    .textarea-wrap { position: relative; }
+
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-hi);
+      font-family: 'Figtree', sans-serif;
+      font-size: 14px;
+      line-height: 1.75;
+      padding: 18px 20px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    textarea::placeholder { color: var(--text-dim); }
+    textarea:focus {
+      border-color: var(--border-hi);
+      box-shadow: 0 0 0 3px var(--glow);
+    }
+
+    .char-counter {
+      position: absolute;
+      bottom: 12px; right: 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      pointer-events: none;
+    }
+    .char-counter.warn { color: var(--amber); }
+    .char-counter.danger { color: var(--red); }
+
+    /* ── Drop zone ── */
+    .drop-zone {
+      border: 1.5px dashed var(--border);
+      border-radius: 12px;
+      background: var(--card);
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .drop-zone::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--glow), var(--glow2));
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--glow);
+    }
+    .drop-zone:hover::before, .drop-zone.dragover::before { opacity: 1; }
+
+    .drop-zone input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+
+    .drop-icon { font-size: 32px; position: relative; z-index: 1; }
+    .drop-title { font-size: 13px; color: var(--text); position: relative; z-index: 1; font-weight: 500; }
+    .drop-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      position: relative; z-index: 1;
+    }
+
+    /* ── Preview ── */
+    .preview-area { margin-top: 14px; }
+
+    .img-preview {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      display: none;
+    }
+
+    audio.audio-preview {
+      width: 100%;
+      margin-top: 8px;
+      border-radius: 8px;
+      display: none;
+      filter: invert(1) hue-rotate(180deg);
+    }
+
+    .file-tag {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: var(--glow);
+      border: 1px solid var(--border-hi);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      margin-top: 10px;
+    }
+    .file-tag.show { display: flex; }
+    .file-tag-remove {
+      margin-left: auto;
+      cursor: pointer;
+      color: var(--text-dim);
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+    .file-tag-remove:hover { color: var(--red); }
+
+    /* ── Image grid option ── */
+    .tips-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    .tip-chip {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px;
+      color: var(--text-dim);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 12px;
+    }
+
+    /* ════════════════════════════════
+       PROGRESS + SUBMIT
+    ════════════════════════════════ */
+    .bottom-section {
+      margin-top: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: fadeUp 0.8s 0.3s ease both;
+    }
+
+    /* Modality summary */
+    .mod-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .mod-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--text-dim);
+      transition: all 0.25s;
+    }
+
+    .mod-pill.ready {
+      border-color: rgba(52,211,153,0.3);
+      color: var(--green);
+      background: rgba(52,211,153,0.05);
+    }
+
+    .mod-pill-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background 0.25s;
+      flex-shrink: 0;
+    }
+
+    .mod-pill.ready .mod-pill-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+    /* Progress bar */
+    #progressWrap {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+
+    .prog-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .prog-label {
+      font-size: 12px;
+      color: var(--text-hi);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .prog-spinner {
+      width: 14px; height: 14px;
+      border: 2px solid var(--border-hi);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    .prog-cancel {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .prog-cancel:hover { border-color: var(--red); color: var(--red); }
+
+    .prog-track {
+      height: 4px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .prog-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 4px;
+      transition: width 0.2s ease;
+    }
+
+    .prog-pct {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      text-align: right;
+      margin-top: 6px;
+      letter-spacing: 1px;
+    }
+
+    /* Submit button */
+    .submit-btn {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, #2563eb, var(--accent2));
+      border: none;
+      border-radius: 14px;
+      color: white;
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .submit-btn::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 36px rgba(79,142,247,0.38);
+    }
+    .submit-btn:hover::before { opacity: 1; }
+    .submit-btn:active:not(:disabled) { transform: translateY(0); }
+    .submit-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+    .submit-inner { display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .submit-arrow { transition: transform 0.2s; }
+    .submit-btn:hover .submit-arrow { transform: translateX(4px); }
+
+    /* ════════════════════════════════
+       FOOTER NOTE
+    ════════════════════════════════ */
+    .footer-note {
+      text-align: center;
+      margin-top: 36px;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
+      line-height: 1.8;
+      animation: fadeUp 0.8s 0.4s ease both;
+    }
+
+    /* ════════════════════════════════
+       ANIMATIONS
+    ════════════════════════════════ */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .form-card { padding: 20px 16px; }
+      .mod-summary { grid-template-columns: 1fr; }
+      .mod-tab { font-size: 9px; }
+      .tab-icon { font-size: 18px; }
+      h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="orb orb-a"></div>
+<div class="orb orb-b"></div>
+<div class="orb orb-c"></div>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🧠</div>
+      <div>
+        <div class="brand-name">MindScope</div>
+        <div class="brand-sub">Multimodal Depression Detection</div>
+      </div>
+    </div>
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      Model Active
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-label">BERT · ResNet-50 · Wav2Vec2</div>
+    <h1>How are you <em>feeling</em><br>right now?</h1>
+    <p class="hero-desc">
+      Share text, a facial photo, or a voice message. Our multimodal model
+      analyzes each channel independently, then fuses them for a combined assessment.
+    </p>
+    <div class="disclaimer">
+      ⚠ Not a medical diagnosis — research & personal insight tool only
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <form action="/predict" method="POST" enctype="multipart/form-data" id="mainForm">
+
+    <!-- MODALITY TABS -->
+    <div class="modality-nav">
+      <button type="button" class="mod-tab active" data-panel="text">
+        <div class="tab-badge" id="badge-text"></div>
+        <span class="tab-icon">📝</span>
+        <span>Text</span>
+      </button>
+      <button type="button" class="mod-tab" data-panel="image">
+        <div class="tab-badge" id="badge-image"></div>
+        <span class="tab-icon">🖼️</span>
+        <span>Image</span>
+      </button>
+      <button type="button" class="mod-tab" data-panel="audio">
+        <div class="tab-badge" id="badge-audio"></div>
+        <span class="tab-icon">🎤</span>
+        <span>Speech</span>
+      </button>
+    </div>
+
+    <!-- FORM CARD -->
+    <div class="form-card">
+
+      <!-- TEXT PANEL -->
+      <div class="panel active" id="panel-text">
+        <div class="panel-head">
+          <div class="panel-num">01</div>
+          <div>
+            <div class="panel-title">Write how you feel</div>
+            <div class="panel-desc">Most impactful input for the model. Describe your thoughts, mood, or recent experiences in your own words.</div>
+          </div>
+        </div>
+        <div class="textarea-wrap">
+          <textarea
+            name="text"
+            id="textInput"
+            maxlength="1500"
+            placeholder="I've been feeling really low lately. Nothing seems to bring me joy anymore, and I find it hard to get out of bed in the mornings…"
+          ></textarea>
+          <div class="char-counter" id="charCounter">0 / 1500</div>
+        </div>
+        <div class="tips-row">
+          <div class="tip-chip">✦ More detail = better accuracy</div>
+          <div class="tip-chip">✦ Write naturally, no need to filter</div>
+          <div class="tip-chip">✦ Any language works</div>
+        </div>
+      </div>
+
+      <!-- IMAGE PANEL -->
+      <div class="panel" id="panel-image">
+        <div class="panel-head">
+          <div class="panel-num">02</div>
+          <div>
+            <div class="panel-title">Facial Expression</div>
+            <div class="panel-desc">Optional — upload a recent, clear photo of your face. The ResNet-50 vision model extracts subtle visual cues.</div>
+          </div>
+        </div>
+        <div class="drop-zone" id="imageZone">
+          <input type="file" name="image" id="imageInput" accept="image/*">
+          <div class="drop-icon">📸</div>
+          <div class="drop-title">Drop your photo here</div>
+          <div class="drop-sub">PNG · JPG · WEBP · max 10MB</div>
+        </div>
+        <div class="preview-area">
+          <img class="img-preview" id="imgPreview" alt="Face preview">
+          <div class="file-tag" id="imageTag">
+            <span>📎</span>
+            <span id="imageTagName">—</span>
+            <span class="file-tag-remove" id="removeImage">✕</span>
+          </div>
+        </div>
+        <div class="tips-row">
+          <div class="tip-chip">✦ Face clearly visible</div>
+          <div class="tip-chip">✦ Good lighting preferred</div>
+          <div class="tip-chip">✦ Frontal angle ideal</div>
+        </div>
+      </div>
+
+      <!-- AUDIO PANEL -->
+      <div class="panel" id="panel-audio">
+        <div class="panel-head">
+          <div class="panel-num">03</div>
+          <div>
+            <div class="panel-title">Voice Message</div>
+            <div class="panel-desc">Optional — record or upload 5–40 seconds of speech. Wav2Vec2 analyzes prosody, pace, and acoustic patterns.</div>
+          </div>
+        </div>
+        <div class="drop-zone" id="audioZone">
+          <input type="file" name="speech" id="audioInput" accept="audio/*">
+          <div class="drop-icon">🎙️</div>
+          <div class="drop-title">Drop an audio file here</div>
+          <div class="drop-sub">WAV · MP3 · OGG · M4A · max 20MB</div>
+        </div>
+        <div class="preview-area">
+          <audio class="audio-preview" id="audioPreview" controls></audio>
+          <div class="file-tag" id="audioTag">
+            <span>🔊</span>
+            <span id="audioTagName">—</span>
+            <span class="file-tag-remove" id="removeAudio">✕</span>
+          </div>
+        </div>
+        <div class="tips-row">
+          <div class="tip-chip">✦ Speak naturally</div>
+          <div class="tip-chip">✦ 5–40 seconds</div>
+          <div class="tip-chip">✦ Quiet background</div>
+        </div>
+      </div>
+
+    </div><!-- /form-card -->
+
+    <!-- BOTTOM SECTION -->
+    <div class="bottom-section">
+
+      <!-- Modality readiness pills -->
+      <div class="mod-summary">
+        <div class="mod-pill" id="pill-text">
+          <div class="mod-pill-dot"></div>
+          <span>📝 Text input</span>
+        </div>
+        <div class="mod-pill" id="pill-image">
+          <div class="mod-pill-dot"></div>
+          <span>🖼️ Image input</span>
+        </div>
+        <div class="mod-pill" id="pill-audio">
+          <div class="mod-pill-dot"></div>
+          <span>🎤 Audio input</span>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div id="progressWrap">
+        <div class="prog-header">
+          <div class="prog-label">
+            <div class="prog-spinner"></div>
+            Uploading & running inference…
+          </div>
+          <button type="button" class="prog-cancel" id="cancelBtn">Cancel</button>
+        </div>
+        <div class="prog-track">
+          <div class="prog-fill" id="progFill"></div>
+        </div>
+        <div class="prog-pct" id="progPct">0%</div>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" class="submit-btn" id="submitBtn">
+        <div class="submit-inner">
+          <span>Run Analysis</span>
+          <span class="submit-arrow">→</span>
+        </div>
+      </button>
+
+    </div>
+  </form>
+
+  <div class="footer-note">
+    BERT-base · ResNet-50 · Wav2Vec2-base &nbsp;·&nbsp; PyTorch &nbsp;·&nbsp;
+    Text + Facial + Acoustic fusion<br>
+    Results are probabilistic estimates, not clinical diagnoses.
+    Please consult a mental health professional if you are struggling.
+  </div>
+
+</div><!-- /page -->
+
+<script>
+  /* ── Tab switching ── */
+  const tabs  = document.querySelectorAll('.mod-tab');
+  const panels = document.querySelectorAll('.panel');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+    });
+  });
+
+  /* ── Char counter ── */
+  const textInput = document.getElementById('textInput');
+  const counter   = document.getElementById('charCounter');
+  const pillText  = document.getElementById('pill-text');
+
+  textInput.addEventListener('input', () => {
+    const n = textInput.value.length;
+    counter.textContent = `${n} / 1500`;
+    counter.className = 'char-counter' + (n > 1200 ? ' danger' : n > 900 ? ' warn' : '');
+    pillText.classList.toggle('ready', n > 0);
+    document.getElementById('badge-text').classList.toggle('filled', n > 0);
+  });
+
+  /* ── Generic drop zone setup ── */
+  function setupDropZone(zoneId, inputId, onFile) {
+    const zone  = document.getElementById(zoneId);
+    const input = document.getElementById(inputId);
+
+    ['dragenter','dragover','dragleave','drop'].forEach(e => zone.addEventListener(e, ev => ev.preventDefault()));
+    ['dragenter','dragover'].forEach(e => zone.addEventListener(e, () => zone.classList.add('dragover')));
+    ['dragleave','drop'].forEach(e => zone.addEventListener(e, () => zone.classList.remove('dragover')));
+
+    zone.addEventListener('drop', e => {
+      const file = e.dataTransfer.files[0];
+      if (file) { setInputFile(input, file); onFile(file); }
+    });
+
+    input.addEventListener('change', () => {
+      if (input.files[0]) onFile(input.files[0]);
+    });
+  }
+
+  /* Programmatically set files on an input */
+  function setInputFile(input, file) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+  }
+
+  /* ── Image drop zone ── */
+  setupDropZone('imageZone', 'imageInput', file => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById('imgPreview');
+      img.src = e.target.result;
+      img.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+    document.getElementById('imageTagName').textContent = file.name;
+    document.getElementById('imageTag').classList.add('show');
+    document.getElementById('pill-image').classList.add('ready');
+    document.getElementById('badge-image').classList.add('filled');
+  });
+
+  document.getElementById('removeImage').addEventListener('click', () => {
+    document.getElementById('imageInput').value = '';
+    document.getElementById('imgPreview').style.display = 'none';
+    document.getElementById('imageTag').classList.remove('show');
+    document.getElementById('pill-image').classList.remove('ready');
+    document.getElementById('badge-image').classList.remove('filled');
+  });
+
+  /* ── Audio drop zone ── */
+  setupDropZone('audioZone', 'audioInput', file => {
+    if (!file.type.startsWith('audio/')) return;
+    const audio = document.getElementById('audioPreview');
+    audio.src = URL.createObjectURL(file);
+    audio.style.display = 'block';
+    document.getElementById('audioTagName').textContent = file.name;
+    document.getElementById('audioTag').classList.add('show');
+    document.getElementById('pill-audio').classList.add('ready');
+    document.getElementById('badge-audio').classList.add('filled');
+  });
+
+  document.getElementById('removeAudio').addEventListener('click', () => {
+    document.getElementById('audioInput').value = '';
+    const audio = document.getElementById('audioPreview');
+    audio.src = ''; audio.style.display = 'none';
+    document.getElementById('audioTag').classList.remove('show');
+    document.getElementById('pill-audio').classList.remove('ready');
+    document.getElementById('badge-audio').classList.remove('filled');
+  });
+
+  /* ── Form submit with XHR progress ── */
+  let xhr = null;
+
+  const form       = document.getElementById('mainForm');
+  const submitBtn  = document.getElementById('submitBtn');
+  const cancelBtn  = document.getElementById('cancelBtn');
+  const progWrap   = document.getElementById('progressWrap');
+  const progFill   = document.getElementById('progFill');
+  const progPct    = document.getElementById('progPct');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const text  = textInput.value.trim();
+    const img   = document.getElementById('imageInput').files[0];
+    const aud   = document.getElementById('audioInput').files[0];
+
+    if (!text && !img && !aud) {
+      textInput.focus();
+      textInput.style.borderColor = 'var(--red)';
+      setTimeout(() => textInput.style.borderColor = '', 2000);
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.querySelector('.submit-inner').innerHTML = '<div class="prog-spinner" style="width:18px;height:18px;border-width:2px;border-color:rgba(255,255,255,0.3);border-top-color:white;"></div><span>Analyzing…</span>';
+    progWrap.style.display = 'block';
+    progFill.style.width = '0%';
+    progPct.textContent = '0%';
+
+    const fd = new FormData(form);
+
+    xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener('progress', ev => {
+      if (ev.lengthComputable) {
+        const pct = Math.round((ev.loaded / ev.total) * 100);
+        progFill.style.width = pct + '%';
+        progPct.textContent  = pct + '%';
+      }
+    });
+
+    xhr.addEventListener('load', function() {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        document.open();
+        document.write(xhr.responseText);
+        document.close();
+      } else {
+        alert(`Server error ${xhr.status}: ${xhr.statusText}`);
+        resetUI();
+      }
+    });
+
+    xhr.addEventListener('error', () => { alert('Network error.'); resetUI(); });
+    xhr.addEventListener('abort', () => { progPct.textContent = 'Cancelled'; });
+
+    xhr.open('POST', '/predict', true);
+    xhr.send(fd);
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    if (xhr) { xhr.abort(); xhr = null; }
+    setTimeout(resetUI, 800);
+  });
+
+  function resetUI() {
+    submitBtn.disabled = false;
+    submitBtn.querySelector('.submit-inner').innerHTML = '<span>Run Analysis</span><span class="submit-arrow">→</span>';
+    progWrap.style.display = 'none';
+    progFill.style.width = '0%';
+  }
+</script>
+</body>
+</html>
