@@ -5,77 +5,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MindScope — Multimodal Depression Detection</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=Figtree:wght@300;400;500;600&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:         #07090f;
-      --surface:    #0c1018;
-      --card:       #101520;
-      --card2:      #141b27;
-      --border:     #1c2840;
-      --border-hi:  #2a3f66;
-      --accent:     #4f8ef7;
-      --accent2:    #7c5cfc;
-      --glow:       rgba(79,142,247,0.12);
-      --glow2:      rgba(124,92,252,0.10);
-      --text:       #b8ccec;
-      --text-dim:   #4a6080;
-      --text-hi:    #e8f0ff;
-      --green:      #34d399;
-      --amber:      #fbbf24;
-      --red:        #f87171;
+      --bg:         #f0f4f8;
+      --surface:    #ffffff;
+      --card:       #ffffff;
+      --card2:      #f7fafc;
+      --border:     #d1dce8;
+      --border-hi:  #a8bedb;
+      --accent:     #0e7c6a;
+      --accent2:    #1a9e87;
+      --accent3:    #06b6a0;
+      --glow:       rgba(14,124,106,0.08);
+      --glow2:      rgba(26,158,135,0.07);
+      --text:       #3d5166;
+      --text-dim:   #8da3b8;
+      --text-hi:    #1a2e3f;
+      --green:      #10b981;
+      --amber:      #d97706;
+      --red:        #ef4444;
       --r:          14px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     html { scroll-behavior: smooth; }
 
     body {
-      font-family: 'Figtree', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       overflow-x: hidden;
     }
 
-    /* ── Noise grain overlay ── */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 100;
-      opacity: 0.35;
-    }
-
-    /* ── Grid ── */
+    /* Subtle dot grid */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      background-image:
-        linear-gradient(rgba(79,142,247,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(79,142,247,0.03) 1px, transparent 1px);
-      background-size: 48px 48px;
+      background-image: radial-gradient(circle, rgba(14,124,106,0.07) 1px, transparent 1px);
+      background-size: 28px 28px;
       pointer-events: none;
       z-index: 0;
     }
 
-    /* ── Ambient orbs ── */
+    /* Ambient orbs */
     .orb {
       position: fixed;
       border-radius: 50%;
-      filter: blur(140px);
+      filter: blur(100px);
       pointer-events: none;
       z-index: 0;
     }
-    .orb-a { width:500px; height:500px; background:#1a3a8f; opacity:0.16; top:-180px; left:-160px; }
-    .orb-b { width:380px; height:380px; background:#3b1f8a; opacity:0.13; bottom:-120px; right:-100px; }
-    .orb-c { width:260px; height:260px; background:#0e4f7a; opacity:0.12; top:45%; left:55%; }
+    .orb-a { width:480px; height:480px; background:#a7f3d0; opacity:0.35; top:-160px; left:-120px; }
+    .orb-b { width:360px; height:360px; background:#bfdbfe; opacity:0.25; bottom:-100px; right:-80px; }
+    .orb-c { width:240px; height:240px; background:#99f6e4; opacity:0.20; top:40%; left:60%; }
 
-    /* ── Page wrapper ── */
     .page {
       position: relative;
       z-index: 1;
@@ -84,14 +70,12 @@
       padding: 0 24px 100px;
     }
 
-    /* ════════════════════════════════
-       HEADER
-    ════════════════════════════════ */
+    /* ── HEADER ── */
     header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 36px 0 44px;
+      padding: 32px 0 40px;
       border-bottom: 1px solid var(--border);
       animation: fadeDown 0.7s ease both;
     }
@@ -99,17 +83,17 @@
     .brand { display: flex; align-items: center; gap: 16px; }
 
     .brand-icon {
-      width: 46px; height: 46px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border-radius: 13px;
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, var(--accent), var(--accent3));
+      border-radius: 14px;
       display: grid; place-items: center;
       font-size: 22px;
-      box-shadow: 0 0 32px rgba(79,142,247,0.35);
+      box-shadow: 0 4px 20px rgba(14,124,106,0.3);
       flex-shrink: 0;
     }
 
     .brand-name {
-      font-family: 'Fraunces', serif;
+      font-family: 'Playfair Display', serif;
       font-size: 24px;
       font-weight: 600;
       color: var(--text-hi);
@@ -127,7 +111,7 @@
     .status-pill {
       display: flex; align-items: center; gap: 8px;
       border: 1px solid var(--border-hi);
-      background: var(--glow);
+      background: rgba(14,124,106,0.06);
       padding: 7px 16px;
       border-radius: 40px;
       font-size: 11px;
@@ -144,18 +128,16 @@
     }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-    /* ════════════════════════════════
-       HERO
-    ════════════════════════════════ */
+    /* ── HERO ── */
     .hero {
       text-align: center;
-      padding: 56px 0 48px;
+      padding: 52px 0 44px;
       animation: fadeUp 0.8s 0.1s ease both;
     }
 
     .hero-label {
       display: inline-block;
-      font-family: 'DM Mono', monospace;
+      font-family: 'JetBrains Mono', monospace;
       font-size: 10px;
       letter-spacing: 4px;
       text-transform: uppercase;
@@ -168,18 +150,18 @@
     }
 
     h1 {
-      font-family: 'Fraunces', serif;
-      font-size: clamp(2.4rem, 6vw, 4rem);
-      font-weight: 300;
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.2rem, 6vw, 3.8rem);
+      font-weight: 400;
       color: var(--text-hi);
-      line-height: 1.15;
+      line-height: 1.18;
       letter-spacing: -1px;
       margin-bottom: 18px;
     }
 
     h1 em {
       font-style: italic;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      background: linear-gradient(90deg, var(--accent), var(--accent3));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -199,17 +181,15 @@
       gap: 8px;
       font-size: 11px;
       color: var(--amber);
-      background: rgba(251,191,36,0.07);
-      border: 1px solid rgba(251,191,36,0.2);
+      background: rgba(217,119,6,0.06);
+      border: 1px solid rgba(217,119,6,0.2);
       padding: 8px 18px;
       border-radius: 30px;
       margin-top: 20px;
       letter-spacing: 0.3px;
     }
 
-    /* ════════════════════════════════
-       MODALITY TABS
-    ════════════════════════════════ */
+    /* ── MODALITY TABS ── */
     .modality-nav {
       display: flex;
       gap: 8px;
@@ -247,14 +227,12 @@
     .mod-tab.active::after {
       content: '';
       position: absolute;
-      bottom: -1px;
-      left: 0; right: 0;
+      bottom: -1px; left: 0; right: 0;
       height: 2px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      background: linear-gradient(90deg, var(--accent), var(--accent3));
     }
 
     .mod-tab:hover:not(.active) { border-color: var(--border-hi); color: var(--text); }
-
     .tab-icon { font-size: 22px; }
 
     .tab-badge {
@@ -267,22 +245,20 @@
     }
     .tab-badge.filled { display: block; background: var(--green); }
 
-    /* ════════════════════════════════
-       MAIN FORM CARD
-    ════════════════════════════════ */
+    /* ── FORM CARD ── */
     .form-card {
       background: var(--card2);
       border: 1px solid var(--border-hi);
       border-radius: 0 0 18px 18px;
       padding: 32px;
       animation: fadeUp 0.8s 0.25s ease both;
+      box-shadow: 0 4px 24px rgba(14,124,106,0.05);
     }
 
-    /* Panel switching */
     .panel { display: none; }
     .panel.active { display: block; }
 
-    /* ── Panel header ── */
+    /* Panel header */
     .panel-head {
       display: flex;
       align-items: flex-start;
@@ -296,7 +272,7 @@
       background: var(--glow);
       border: 1px solid var(--border-hi);
       display: grid; place-items: center;
-      font-family: 'DM Mono', monospace;
+      font-family: 'JetBrains Mono', monospace;
       font-size: 12px;
       color: var(--accent);
       flex-shrink: 0;
@@ -304,7 +280,7 @@
     }
 
     .panel-title {
-      font-family: 'Fraunces', serif;
+      font-family: 'Playfair Display', serif;
       font-size: 20px;
       font-weight: 600;
       color: var(--text-hi);
@@ -312,7 +288,7 @@
 
     .panel-desc { font-size: 12px; color: var(--text-dim); margin-top: 3px; line-height: 1.5; }
 
-    /* ── Textarea ── */
+    /* Textarea */
     .textarea-wrap { position: relative; }
 
     textarea {
@@ -322,7 +298,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       color: var(--text-hi);
-      font-family: 'Figtree', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       font-size: 14px;
       line-height: 1.75;
       padding: 18px 20px;
@@ -332,14 +308,14 @@
     }
     textarea::placeholder { color: var(--text-dim); }
     textarea:focus {
-      border-color: var(--border-hi);
+      border-color: var(--accent);
       box-shadow: 0 0 0 3px var(--glow);
     }
 
     .char-counter {
       position: absolute;
       bottom: 12px; right: 14px;
-      font-family: 'DM Mono', monospace;
+      font-family: 'JetBrains Mono', monospace;
       font-size: 10px;
       color: var(--text-dim);
       letter-spacing: 1px;
@@ -348,12 +324,12 @@
     .char-counter.warn { color: var(--amber); }
     .char-counter.danger { color: var(--red); }
 
-    /* ── Drop zone ── */
+    /* Drop zone */
     .drop-zone {
       border: 1.5px dashed var(--border);
       border-radius: 12px;
       background: var(--card);
-      min-height: 140px;
+      min-height: 130px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -367,8 +343,7 @@
 
     .drop-zone::before {
       content: '';
-      position: absolute;
-      inset: 0;
+      position: absolute; inset: 0;
       background: linear-gradient(135deg, var(--glow), var(--glow2));
       opacity: 0;
       transition: opacity 0.25s;
@@ -385,17 +360,228 @@
       opacity: 0; cursor: pointer; width: 100%; height: 100%;
     }
 
-    .drop-icon { font-size: 32px; position: relative; z-index: 1; }
+    .drop-icon { font-size: 28px; position: relative; z-index: 1; }
     .drop-title { font-size: 13px; color: var(--text); position: relative; z-index: 1; font-weight: 500; }
     .drop-sub {
-      font-family: 'DM Mono', monospace;
+      font-family: 'JetBrains Mono', monospace;
       font-size: 10px;
       color: var(--text-dim);
       letter-spacing: 1px;
       position: relative; z-index: 1;
     }
 
-    /* ── Preview ── */
+    /* ── LIVE INPUT CONTROLS ── */
+    .input-mode-toggle {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 9px 12px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text-dim);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .mode-btn.active {
+      border-color: var(--accent);
+      background: var(--glow);
+      color: var(--accent);
+    }
+
+    .mode-btn:hover:not(.active) {
+      border-color: var(--border-hi);
+      color: var(--text);
+    }
+
+    /* Camera section */
+    .camera-section { display: none; }
+    .camera-section.visible { display: block; }
+
+    .camera-viewport {
+      width: 100%;
+      border-radius: 12px;
+      background: #0a1520;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 4/3;
+      max-height: 300px;
+    }
+
+    .camera-viewport video,
+    .camera-viewport canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .camera-viewport canvas { display: none; }
+
+    .cam-overlay {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 16px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.5));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .cam-btn {
+      padding: 10px 22px;
+      border-radius: 30px;
+      border: none;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .cam-btn-primary {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 4px 16px rgba(14,124,106,0.4);
+    }
+    .cam-btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+
+    .cam-btn-secondary {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      backdrop-filter: blur(8px);
+    }
+    .cam-btn-secondary:hover { background: rgba(255,255,255,0.25); }
+
+    .cam-status {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      text-align: center;
+      margin-top: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .cam-status.live { color: var(--red); }
+    .cam-status.captured { color: var(--green); }
+
+    /* Mic / recording section */
+    .mic-section { display: none; }
+    .mic-section.visible { display: block; }
+
+    .mic-interface {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .mic-visualizer {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 48px;
+    }
+
+    .mic-bar {
+      width: 4px;
+      border-radius: 4px;
+      background: var(--border);
+      height: 8px;
+      transition: height 0.1s ease;
+    }
+
+    .mic-bar.active {
+      background: linear-gradient(to top, var(--accent), var(--accent3));
+    }
+
+    .mic-timer {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 300;
+      color: var(--text-hi);
+      letter-spacing: 2px;
+    }
+
+    .mic-timer.recording { color: var(--red); }
+
+    .mic-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .mic-btn {
+      padding: 12px 28px;
+      border-radius: 30px;
+      border: none;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mic-btn-record {
+      background: linear-gradient(135deg, var(--accent), var(--accent3));
+      color: white;
+      box-shadow: 0 4px 16px rgba(14,124,106,0.35);
+    }
+    .mic-btn-record:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(14,124,106,0.45); }
+
+    .mic-btn-stop {
+      background: var(--red);
+      color: white;
+    }
+    .mic-btn-stop:hover { background: #dc2626; transform: translateY(-1px); }
+
+    .mic-btn-discard {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 12px;
+      padding: 10px 18px;
+    }
+    .mic-btn-discard:hover { border-color: var(--red); color: var(--red); }
+
+    .rec-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: white;
+      animation: blink 1s infinite;
+    }
+
+    .mic-hint {
+      font-size: 11px;
+      color: var(--text-dim);
+      text-align: center;
+    }
+
+    /* Preview areas */
     .preview-area { margin-top: 14px; }
 
     .img-preview {
@@ -412,18 +598,18 @@
       margin-top: 8px;
       border-radius: 8px;
       display: none;
-      filter: invert(1) hue-rotate(180deg);
+      accent-color: var(--accent);
     }
 
     .file-tag {
       display: none;
       align-items: center;
       gap: 8px;
-      background: var(--glow);
-      border: 1px solid var(--border-hi);
+      background: rgba(14,124,106,0.06);
+      border: 1px solid rgba(14,124,106,0.25);
       border-radius: 8px;
       padding: 8px 14px;
-      font-family: 'DM Mono', monospace;
+      font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
       color: var(--accent);
       margin-top: 10px;
@@ -438,7 +624,7 @@
     }
     .file-tag-remove:hover { color: var(--red); }
 
-    /* ── Image grid option ── */
+    /* Tip chips */
     .tips-row {
       display: flex;
       gap: 10px;
@@ -456,9 +642,7 @@
       padding: 5px 12px;
     }
 
-    /* ════════════════════════════════
-       PROGRESS + SUBMIT
-    ════════════════════════════════ */
+    /* ── BOTTOM SECTION ── */
     .bottom-section {
       margin-top: 28px;
       display: flex;
@@ -467,7 +651,6 @@
       animation: fadeUp 0.8s 0.3s ease both;
     }
 
-    /* Modality summary */
     .mod-summary {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -488,9 +671,9 @@
     }
 
     .mod-pill.ready {
-      border-color: rgba(52,211,153,0.3);
+      border-color: rgba(16,185,129,0.3);
       color: var(--green);
-      background: rgba(52,211,153,0.05);
+      background: rgba(16,185,129,0.05);
     }
 
     .mod-pill-dot {
@@ -503,7 +686,7 @@
 
     .mod-pill.ready .mod-pill-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
 
-    /* Progress bar */
+    /* Progress */
     #progressWrap {
       display: none;
       background: var(--card);
@@ -534,7 +717,7 @@
     }
 
     .prog-cancel {
-      font-family: 'DM Mono', monospace;
+      font-family: 'JetBrains Mono', monospace;
       font-size: 10px;
       letter-spacing: 1px;
       text-transform: uppercase;
@@ -558,13 +741,13 @@
     .prog-fill {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      background: linear-gradient(90deg, var(--accent), var(--accent3));
       border-radius: 4px;
       transition: width 0.2s ease;
     }
 
     .prog-pct {
-      font-family: 'DM Mono', monospace;
+      font-family: 'JetBrains Mono', monospace;
       font-size: 10px;
       color: var(--text-dim);
       text-align: right;
@@ -572,15 +755,15 @@
       letter-spacing: 1px;
     }
 
-    /* Submit button */
+    /* Submit */
     .submit-btn {
       width: 100%;
       padding: 18px;
-      background: linear-gradient(135deg, #2563eb, var(--accent2));
+      background: linear-gradient(135deg, var(--accent), var(--accent3));
       border: none;
       border-radius: 14px;
       color: white;
-      font-family: 'Fraunces', serif;
+      font-family: 'Playfair Display', serif;
       font-size: 18px;
       font-weight: 600;
       letter-spacing: -0.3px;
@@ -588,19 +771,20 @@
       transition: all 0.3s;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 6px 24px rgba(14,124,106,0.3);
     }
 
     .submit-btn::before {
       content: '';
       position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
       opacity: 0;
       transition: opacity 0.3s;
     }
 
     .submit-btn:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 10px 36px rgba(79,142,247,0.38);
+      box-shadow: 0 10px 36px rgba(14,124,106,0.4);
     }
     .submit-btn:hover::before { opacity: 1; }
     .submit-btn:active:not(:disabled) { transform: translateY(0); }
@@ -610,9 +794,7 @@
     .submit-arrow { transition: transform 0.2s; }
     .submit-btn:hover .submit-arrow { transform: translateX(4px); }
 
-    /* ════════════════════════════════
-       FOOTER NOTE
-    ════════════════════════════════ */
+    /* Footer */
     .footer-note {
       text-align: center;
       margin-top: 36px;
@@ -623,9 +805,7 @@
       animation: fadeUp 0.8s 0.4s ease both;
     }
 
-    /* ════════════════════════════════
-       ANIMATIONS
-    ════════════════════════════════ */
+    /* Animations */
     @keyframes fadeDown {
       from { opacity: 0; transform: translateY(-16px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -636,13 +816,13 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Responsive ── */
     @media (max-width: 600px) {
       .form-card { padding: 20px 16px; }
       .mod-summary { grid-template-columns: 1fr; }
       .mod-tab { font-size: 9px; }
       .tab-icon { font-size: 18px; }
       h1 { font-size: 2rem; }
+      .input-mode-toggle { flex-direction: column; }
     }
   </style>
 </head>
@@ -678,7 +858,7 @@
       analyzes each channel independently, then fuses them for a combined assessment.
     </p>
     <div class="disclaimer">
-      ⚠ Not a medical diagnosis — research & personal insight tool only
+      ⚠ Not a medical diagnosis — research &amp; personal insight tool only
     </div>
   </div>
 
@@ -738,15 +918,49 @@
           <div class="panel-num">02</div>
           <div>
             <div class="panel-title">Facial Expression</div>
-            <div class="panel-desc">Optional — upload a recent, clear photo of your face. The ResNet-50 vision model extracts subtle visual cues.</div>
+            <div class="panel-desc">Upload a photo or use your camera live. ResNet-50 extracts subtle visual cues from your expression.</div>
           </div>
         </div>
-        <div class="drop-zone" id="imageZone">
-          <input type="file" name="image" id="imageInput" accept="image/*">
-          <div class="drop-icon">📸</div>
-          <div class="drop-title">Drop your photo here</div>
-          <div class="drop-sub">PNG · JPG · WEBP · max 10MB</div>
+
+        <!-- Mode toggle -->
+        <div class="input-mode-toggle">
+          <button type="button" class="mode-btn active" id="imgUploadBtn">
+            📁 Upload Photo
+          </button>
+          <button type="button" class="mode-btn" id="imgCameraBtn">
+            📷 Use Camera
+          </button>
         </div>
+
+        <!-- Upload zone -->
+        <div id="imgUploadSection">
+          <div class="drop-zone" id="imageZone">
+            <input type="file" name="image" id="imageInput" accept="image/*">
+            <div class="drop-icon">📸</div>
+            <div class="drop-title">Drop your photo here or click to browse</div>
+            <div class="drop-sub">PNG · JPG · WEBP · max 10MB</div>
+          </div>
+        </div>
+
+        <!-- Camera section -->
+        <div class="camera-section" id="imgCameraSection">
+          <div class="camera-viewport" id="cameraViewport">
+            <video id="cameraVideo" autoplay playsinline muted></video>
+            <canvas id="cameraCanvas"></canvas>
+            <div class="cam-overlay" id="camOverlay">
+              <button type="button" class="cam-btn cam-btn-primary" id="snapBtn">📸 Capture</button>
+            </div>
+          </div>
+          <div class="cam-status" id="camStatus">Camera not started — click below to begin</div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button type="button" class="cam-btn cam-btn-primary" id="startCamBtn" style="flex:1;justify-content:center;">▶ Start Camera</button>
+            <button type="button" class="cam-btn cam-btn-secondary" id="retakeBtn" style="flex:1;justify-content:center;background:var(--border);color:var(--text);display:none;">↩ Retake</button>
+          </div>
+        </div>
+
+        <!-- Hidden input for captured image -->
+        <input type="hidden" name="image_data" id="imageCaptureData">
+
         <div class="preview-area">
           <img class="img-preview" id="imgPreview" alt="Face preview">
           <div class="file-tag" id="imageTag">
@@ -768,15 +982,50 @@
           <div class="panel-num">03</div>
           <div>
             <div class="panel-title">Voice Message</div>
-            <div class="panel-desc">Optional — record or upload 5–40 seconds of speech. Wav2Vec2 analyzes prosody, pace, and acoustic patterns.</div>
+            <div class="panel-desc">Record live or upload 5–40 seconds of speech. Wav2Vec2 analyzes prosody, pace, and acoustic patterns.</div>
           </div>
         </div>
-        <div class="drop-zone" id="audioZone">
-          <input type="file" name="speech" id="audioInput" accept="audio/*">
-          <div class="drop-icon">🎙️</div>
-          <div class="drop-title">Drop an audio file here</div>
-          <div class="drop-sub">WAV · MP3 · OGG · M4A · max 20MB</div>
+
+        <!-- Mode toggle -->
+        <div class="input-mode-toggle">
+          <button type="button" class="mode-btn active" id="audUploadBtn">
+            📁 Upload Audio
+          </button>
+          <button type="button" class="mode-btn" id="audRecordBtn">
+            🎙️ Record Live
+          </button>
         </div>
+
+        <!-- Upload zone -->
+        <div id="audUploadSection">
+          <div class="drop-zone" id="audioZone">
+            <input type="file" name="speech" id="audioInput" accept="audio/*">
+            <div class="drop-icon">🎙️</div>
+            <div class="drop-title">Drop an audio file here or click to browse</div>
+            <div class="drop-sub">WAV · MP3 · OGG · M4A · max 20MB</div>
+          </div>
+        </div>
+
+        <!-- Live recording section -->
+        <div class="mic-section" id="audRecordSection">
+          <div class="mic-interface">
+            <div class="mic-visualizer" id="micVisualizer">
+              <!-- bars injected by JS -->
+            </div>
+            <div class="mic-timer" id="micTimer">00:00</div>
+            <div class="mic-controls">
+              <button type="button" class="mic-btn mic-btn-record" id="startRecBtn">
+                🎙️ Start Recording
+              </button>
+              <button type="button" class="mic-btn mic-btn-stop" id="stopRecBtn" style="display:none;">
+                <div class="rec-dot"></div> Stop
+              </button>
+            </div>
+            <div class="mic-hint" id="micHint">Speak clearly into your microphone · 5–40 seconds recommended</div>
+          </div>
+          <button type="button" class="mic-btn mic-btn-discard" id="discardRecBtn" style="display:none;margin-top:8px;width:100%;justify-content:center;">✕ Discard Recording</button>
+        </div>
+
         <div class="preview-area">
           <audio class="audio-preview" id="audioPreview" controls></audio>
           <div class="file-tag" id="audioTag">
@@ -796,8 +1045,6 @@
 
     <!-- BOTTOM SECTION -->
     <div class="bottom-section">
-
-      <!-- Modality readiness pills -->
       <div class="mod-summary">
         <div class="mod-pill" id="pill-text">
           <div class="mod-pill-dot"></div>
@@ -813,12 +1060,11 @@
         </div>
       </div>
 
-      <!-- Progress -->
       <div id="progressWrap">
         <div class="prog-header">
           <div class="prog-label">
             <div class="prog-spinner"></div>
-            Uploading & running inference…
+            Uploading &amp; running inference…
           </div>
           <button type="button" class="prog-cancel" id="cancelBtn">Cancel</button>
         </div>
@@ -828,15 +1074,14 @@
         <div class="prog-pct" id="progPct">0%</div>
       </div>
 
-      <!-- Submit -->
       <button type="submit" class="submit-btn" id="submitBtn">
         <div class="submit-inner">
           <span>Run Analysis</span>
           <span class="submit-arrow">→</span>
         </div>
       </button>
-
     </div>
+
   </form>
 
   <div class="footer-note">
@@ -850,7 +1095,7 @@
 
 <script>
   /* ── Tab switching ── */
-  const tabs  = document.querySelectorAll('.mod-tab');
+  const tabs   = document.querySelectorAll('.mod-tab');
   const panels = document.querySelectorAll('.panel');
 
   tabs.forEach(tab => {
@@ -875,10 +1120,11 @@
     document.getElementById('badge-text').classList.toggle('filled', n > 0);
   });
 
-  /* ── Generic drop zone setup ── */
+  /* ── Generic drop zone ── */
   function setupDropZone(zoneId, inputId, onFile) {
     const zone  = document.getElementById(zoneId);
     const input = document.getElementById(inputId);
+    if (!zone || !input) return;
 
     ['dragenter','dragover','dragleave','drop'].forEach(e => zone.addEventListener(e, ev => ev.preventDefault()));
     ['dragenter','dragover'].forEach(e => zone.addEventListener(e, () => zone.classList.add('dragover')));
@@ -894,16 +1140,118 @@
     });
   }
 
-  /* Programmatically set files on an input */
   function setInputFile(input, file) {
-    const dt = new DataTransfer();
-    dt.items.add(file);
-    input.files = dt.files;
+    try {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+    } catch(e) {}
   }
 
-  /* ── Image drop zone ── */
+  /* ════════════════════════════
+     IMAGE — UPLOAD + CAMERA
+  ════════════════════════════ */
+  const imgUploadBtn   = document.getElementById('imgUploadBtn');
+  const imgCameraBtn   = document.getElementById('imgCameraBtn');
+  const imgUploadSec   = document.getElementById('imgUploadSection');
+  const imgCameraSec   = document.getElementById('imgCameraSection');
+  const cameraVideo    = document.getElementById('cameraVideo');
+  const cameraCanvas   = document.getElementById('cameraCanvas');
+  const snapBtn        = document.getElementById('snapBtn');
+  const startCamBtn    = document.getElementById('startCamBtn');
+  const retakeBtn      = document.getElementById('retakeBtn');
+  const camStatus      = document.getElementById('camStatus');
+  const camOverlay     = document.getElementById('camOverlay');
+  const captureDataInput = document.getElementById('imageCaptureData');
+
+  let cameraStream = null;
+  let capturedImageBlob = null;
+
+  imgUploadBtn.addEventListener('click', () => {
+    imgUploadBtn.classList.add('active');
+    imgCameraBtn.classList.remove('active');
+    imgUploadSec.style.display = 'block';
+    imgCameraSec.classList.remove('visible');
+    stopCamera();
+  });
+
+  imgCameraBtn.addEventListener('click', () => {
+    imgCameraBtn.classList.add('active');
+    imgUploadBtn.classList.remove('active');
+    imgUploadSec.style.display = 'none';
+    imgCameraSec.classList.add('visible');
+  });
+
+  startCamBtn.addEventListener('click', async () => {
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+      cameraVideo.srcObject = cameraStream;
+      cameraVideo.style.display = 'block';
+      cameraCanvas.style.display = 'none';
+      camStatus.textContent = '● Live — position your face in frame';
+      camStatus.className = 'cam-status live';
+      startCamBtn.textContent = '▶ Camera On';
+      startCamBtn.style.background = 'var(--green)';
+      snapBtn.style.display = 'flex';
+      retakeBtn.style.display = 'none';
+    } catch(err) {
+      camStatus.textContent = '✕ Camera access denied — check browser permissions';
+      camStatus.className = 'cam-status';
+    }
+  });
+
+  snapBtn.addEventListener('click', () => {
+    if (!cameraStream) return;
+    cameraCanvas.width  = cameraVideo.videoWidth;
+    cameraCanvas.height = cameraVideo.videoHeight;
+    cameraCanvas.getContext('2d').drawImage(cameraVideo, 0, 0);
+    cameraCanvas.style.display = 'block';
+    cameraVideo.style.display  = 'none';
+    snapBtn.style.display = 'none';
+    retakeBtn.style.display = 'flex';
+    camStatus.textContent = '✓ Photo captured — ready to submit';
+    camStatus.className = 'cam-status captured';
+
+    cameraCanvas.toBlob(blob => {
+      capturedImageBlob = blob;
+      // Show preview tag
+      const url = URL.createObjectURL(blob);
+      document.getElementById('imgPreview').src = url;
+      document.getElementById('imgPreview').style.display = 'block';
+      document.getElementById('imageTagName').textContent = 'camera_capture.jpg';
+      document.getElementById('imageTag').classList.add('show');
+      document.getElementById('pill-image').classList.add('ready');
+      document.getElementById('badge-image').classList.add('filled');
+    }, 'image/jpeg', 0.92);
+
+    stopCamera();
+  });
+
+  retakeBtn.addEventListener('click', async () => {
+    capturedImageBlob = null;
+    cameraCanvas.style.display = 'none';
+    document.getElementById('imgPreview').style.display = 'none';
+    document.getElementById('imageTag').classList.remove('show');
+    document.getElementById('pill-image').classList.remove('ready');
+    document.getElementById('badge-image').classList.remove('filled');
+    retakeBtn.style.display = 'none';
+    startCamBtn.textContent = '▶ Start Camera';
+    startCamBtn.style.background = '';
+    camStatus.textContent = 'Camera stopped — click Start Camera to try again';
+    camStatus.className = 'cam-status';
+  });
+
+  function stopCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(t => t.stop());
+      cameraStream = null;
+    }
+  }
+
+  /* Upload image handler */
   setupDropZone('imageZone', 'imageInput', file => {
     if (!file.type.startsWith('image/')) return;
+    capturedImageBlob = null;
     const reader = new FileReader();
     reader.onload = e => {
       const img = document.getElementById('imgPreview');
@@ -923,11 +1271,153 @@
     document.getElementById('imageTag').classList.remove('show');
     document.getElementById('pill-image').classList.remove('ready');
     document.getElementById('badge-image').classList.remove('filled');
+    capturedImageBlob = null;
   });
 
-  /* ── Audio drop zone ── */
+  /* ════════════════════════════
+     AUDIO — UPLOAD + LIVE MIC
+  ════════════════════════════ */
+  const audUploadBtn  = document.getElementById('audUploadBtn');
+  const audRecordBtn  = document.getElementById('audRecordBtn');
+  const audUploadSec  = document.getElementById('audUploadSection');
+  const audRecordSec  = document.getElementById('audRecordSection');
+  const startRecBtn   = document.getElementById('startRecBtn');
+  const stopRecBtn    = document.getElementById('stopRecBtn');
+  const discardRecBtn = document.getElementById('discardRecBtn');
+  const micTimer      = document.getElementById('micTimer');
+  const micHint       = document.getElementById('micHint');
+  const micVisualizer = document.getElementById('micVisualizer');
+
+  // Build visualizer bars
+  const BAR_COUNT = 24;
+  for (let i = 0; i < BAR_COUNT; i++) {
+    const b = document.createElement('div');
+    b.className = 'mic-bar';
+    micVisualizer.appendChild(b);
+  }
+  const micBars = micVisualizer.querySelectorAll('.mic-bar');
+
+  audUploadBtn.addEventListener('click', () => {
+    audUploadBtn.classList.add('active');
+    audRecordBtn.classList.remove('active');
+    audUploadSec.style.display = 'block';
+    audRecordSec.classList.remove('visible');
+  });
+
+  audRecordBtn.addEventListener('click', () => {
+    audRecordBtn.classList.add('active');
+    audUploadBtn.classList.remove('active');
+    audUploadSec.style.display = 'none';
+    audRecordSec.classList.add('visible');
+  });
+
+  let mediaRecorder = null;
+  let audioChunks   = [];
+  let recordedBlob  = null;
+  let timerInterval = null;
+  let seconds       = 0;
+  let audioCtx      = null;
+  let analyser      = null;
+  let animFrame     = null;
+
+  function formatTime(s) {
+    return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+  }
+
+  function animateBars() {
+    if (!analyser) return;
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(data);
+    micBars.forEach((bar, i) => {
+      const idx = Math.floor(i * data.length / BAR_COUNT);
+      const h = Math.max(6, (data[idx] / 255) * 42);
+      bar.style.height = h + 'px';
+      bar.classList.add('active');
+    });
+    animFrame = requestAnimationFrame(animateBars);
+  }
+
+  startRecBtn.addEventListener('click', async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+      const src = audioCtx.createMediaStreamSource(stream);
+      analyser  = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+      src.connect(analyser);
+
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks   = [];
+
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const url    = URL.createObjectURL(recordedBlob);
+        const audio  = document.getElementById('audioPreview');
+        audio.src    = url;
+        audio.style.display = 'block';
+        document.getElementById('audioTagName').textContent = 'live_recording.webm';
+        document.getElementById('audioTag').classList.add('show');
+        document.getElementById('pill-audio').classList.add('ready');
+        document.getElementById('badge-audio').classList.add('filled');
+        discardRecBtn.style.display = 'flex';
+        micHint.textContent = '✓ Recording saved — preview above or discard to re-record';
+        stream.getTracks().forEach(t => t.stop());
+        cancelAnimationFrame(animFrame);
+        micBars.forEach(b => { b.style.height = '8px'; b.classList.remove('active'); });
+      };
+
+      mediaRecorder.start();
+      seconds = 0;
+      micTimer.textContent = formatTime(0);
+      micTimer.classList.add('recording');
+      timerInterval = setInterval(() => {
+        seconds++;
+        micTimer.textContent = formatTime(seconds);
+        if (seconds >= 40) stopRecording();
+      }, 1000);
+
+      startRecBtn.style.display = 'none';
+      stopRecBtn.style.display  = 'flex';
+      micHint.textContent = '● Recording… speak naturally (max 40s)';
+      animateBars();
+
+    } catch(err) {
+      micHint.textContent = '✕ Microphone access denied — check browser permissions';
+    }
+  });
+
+  stopRecBtn.addEventListener('click', stopRecording);
+
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    clearInterval(timerInterval);
+    micTimer.classList.remove('recording');
+    stopRecBtn.style.display  = 'none';
+    startRecBtn.style.display = 'flex';
+    if (analyser) { analyser.disconnect(); analyser = null; }
+    if (audioCtx) { audioCtx.close(); audioCtx = null; }
+  }
+
+  discardRecBtn.addEventListener('click', () => {
+    recordedBlob = null;
+    document.getElementById('audioInput').value = '';
+    const audio = document.getElementById('audioPreview');
+    audio.src = ''; audio.style.display = 'none';
+    document.getElementById('audioTag').classList.remove('show');
+    document.getElementById('pill-audio').classList.remove('ready');
+    document.getElementById('badge-audio').classList.remove('filled');
+    discardRecBtn.style.display = 'none';
+    seconds = 0;
+    micTimer.textContent = formatTime(0);
+    micHint.textContent = 'Speak clearly into your microphone · 5–40 seconds recommended';
+  });
+
+  /* Upload audio handler */
   setupDropZone('audioZone', 'audioInput', file => {
     if (!file.type.startsWith('audio/')) return;
+    recordedBlob = null;
     const audio = document.getElementById('audioPreview');
     audio.src = URL.createObjectURL(file);
     audio.style.display = 'block';
@@ -939,6 +1429,7 @@
 
   document.getElementById('removeAudio').addEventListener('click', () => {
     document.getElementById('audioInput').value = '';
+    recordedBlob = null;
     const audio = document.getElementById('audioPreview');
     audio.src = ''; audio.style.display = 'none';
     document.getElementById('audioTag').classList.remove('show');
@@ -946,24 +1437,23 @@
     document.getElementById('badge-audio').classList.remove('filled');
   });
 
-  /* ── Form submit with XHR progress ── */
+  /* ── Form submit ── */
   let xhr = null;
+  const form      = document.getElementById('mainForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const progWrap  = document.getElementById('progressWrap');
+  const progFill  = document.getElementById('progFill');
+  const progPct   = document.getElementById('progPct');
 
-  const form       = document.getElementById('mainForm');
-  const submitBtn  = document.getElementById('submitBtn');
-  const cancelBtn  = document.getElementById('cancelBtn');
-  const progWrap   = document.getElementById('progressWrap');
-  const progFill   = document.getElementById('progFill');
-  const progPct    = document.getElementById('progPct');
-
-  form.addEventListener('submit', function(e) {
+  form.addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    const text  = textInput.value.trim();
-    const img   = document.getElementById('imageInput').files[0];
-    const aud   = document.getElementById('audioInput').files[0];
+    const text = textInput.value.trim();
+    const img  = document.getElementById('imageInput').files[0];
+    const aud  = document.getElementById('audioInput').files[0];
 
-    if (!text && !img && !aud) {
+    if (!text && !img && !aud && !capturedImageBlob && !recordedBlob) {
       textInput.focus();
       textInput.style.borderColor = 'var(--red)';
       setTimeout(() => textInput.style.borderColor = '', 2000);
@@ -971,12 +1461,19 @@
     }
 
     submitBtn.disabled = true;
-    submitBtn.querySelector('.submit-inner').innerHTML = '<div class="prog-spinner" style="width:18px;height:18px;border-width:2px;border-color:rgba(255,255,255,0.3);border-top-color:white;"></div><span>Analyzing…</span>';
+    submitBtn.querySelector('.submit-inner').innerHTML =
+      '<div class="prog-spinner" style="width:18px;height:18px;border-width:2px;border-color:rgba(255,255,255,0.3);border-top-color:white;"></div><span>Analyzing…</span>';
     progWrap.style.display = 'block';
     progFill.style.width = '0%';
     progPct.textContent = '0%';
 
     const fd = new FormData(form);
+
+    // Append captured image blob if present
+    if (capturedImageBlob) fd.append('image', capturedImageBlob, 'camera_capture.jpg');
+
+    // Append recorded audio blob if present
+    if (recordedBlob) fd.append('speech', recordedBlob, 'live_recording.webm');
 
     xhr = new XMLHttpRequest();
 
@@ -990,9 +1487,7 @@
 
     xhr.addEventListener('load', function() {
       if (xhr.status >= 200 && xhr.status < 300) {
-        document.open();
-        document.write(xhr.responseText);
-        document.close();
+        document.open(); document.write(xhr.responseText); document.close();
       } else {
         alert(`Server error ${xhr.status}: ${xhr.statusText}`);
         resetUI();
@@ -1013,7 +1508,8 @@
 
   function resetUI() {
     submitBtn.disabled = false;
-    submitBtn.querySelector('.submit-inner').innerHTML = '<span>Run Analysis</span><span class="submit-arrow">→</span>';
+    submitBtn.querySelector('.submit-inner').innerHTML =
+      '<span>Run Analysis</span><span class="submit-arrow">→</span>';
     progWrap.style.display = 'none';
     progFill.style.width = '0%';
   }
