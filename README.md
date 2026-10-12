@@ -48,14 +48,28 @@ python app.py
 
 The home page and `/healthz` should work without a model checkpoint; `/readyz` returns HTTP 503 and `/predict` is disabled until a reviewed artifact is configured.
 
-## Audit the local dataset
+## Audit datasets locally
 
+The previous branch contained an acted-emotion corpus under misleading `depression1/normal1` folder names. It has been removed from this modernization branch so it cannot be mistaken for the DAIC-WOZ target or included in deployment.
+
+For the retired audio corpus only, the general metadata checker remains available:
 ```bash
 python check_data.py
 python scripts/audit_dataset.py --json
 ```
 
-Check Git LFS availability before treating path counts as downloaded audio. The audit intentionally reports file availability and metadata; it does not infer a clinical target from the folder name or filename suffix.
+### Audit the USC-provided DAIC-WOZ package
+
+Keep the original DAIC-WOZ archive and extracted data on a locally protected drive. Do not upload participant interviews, transcripts, videos, audio, labels, or archives to GitHub or CI artifacts. The USC distribution is subject to its consent and data-use restrictions.
+
+Run the new local-only package auditor:
+```bash
+python scripts/audit_daic_woz.py --root "D:\\path\\to\\your\\DAIC-WOZ" --json
+```
+
+It reads the split-table label columns and ZIP central-directory metadata. It prints aggregate counts only; it does not print participant IDs or transcript content, extract the archives, or upload anything. Confirm the input path is the directory containing the USC-provided split CSVs and participant ZIPs (or the extracted participant folders).
+
+The report checks which splits are present, whether target labels and PHQ-8 scores exist, class counts, score ranges, invalid/inconsistent label-score pairs, overlap between official train/dev/test participant IDs, and whether media archives contain transcript/audio/video files. An official test split without PHQ-8 ground truth must remain unlabelled; the audit never fabricates values. Review USC's own documentation and the data-use agreement before finalizing the task and split strategy.
 
 ## Tests
 
