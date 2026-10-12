@@ -64,7 +64,7 @@ Keep the original DAIC-WOZ archive and extracted data on a locally protected dri
 
 Run the new local-only package auditor:
 ```bash
-python scripts/audit_daic_woz.py --root "D:\\path\\to\\your\\DAIC-WOZ" --json
+python scripts/audit_daic_woz.py --root "D:\path\to\your\DAIC-WOZ" --json
 ```
 
 It reads the split-table label columns and ZIP central-directory metadata. It prints aggregate counts only; it does not print participant IDs or transcript content, extract the archives, or upload anything. Confirm the input path is the directory containing the USC-provided split CSVs and participant ZIPs (or the extracted participant folders).
