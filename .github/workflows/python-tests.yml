@@ -21,7 +21,9 @@ jobs:
           python-version: "3.11"
       - name: Compile Python source
         run: python -m compileall -q app.py model_gate.py check_data.py train_real.py scripts tests
-      - name: Run standard-library tests
+      - name: Install lightweight template test dependency
+        run: python -m pip install "Flask>=3.0,<4.0"
+      - name: Run regression tests
         run: python -m unittest discover -s tests -v
       - name: Confirm the legacy trainer is disabled
         shell: bash
