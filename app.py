@@ -25,6 +25,10 @@ MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_BYTES
 
+@app.errorhandler(413)
+def request_too_large(_error):
+    return jsonify({"error": "The request is too large. Keep all selected files under 20 MB total."}), 413
+
 # ────────────────────────────────────────────────
 #                MODEL DEFINITION
 # ────────────────────────────────────────────────
@@ -226,6 +230,11 @@ def predict():
 
         if not has_text and not has_image and not has_audio:
             return jsonify({"error": "Please provide at least one input modality."}), 400
+
+        if (has_image or has_audio) and request.form.get("media_consent") != "yes":
+            return jsonify({
+                "error": "Please confirm consent before submitting an image or audio recording."
+            }), 400
 
         text_inputs = preprocess_text(text) if has_text else None
         if text_inputs is not None:
