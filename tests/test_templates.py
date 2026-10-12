@@ -27,6 +27,24 @@ class TemplateSafetyTests(unittest.TestCase):
         self.assertIn('name="media_consent" value="yes"', source)
         self.assertIn("Uploaded media is held in a temporary file and deleted after the request.", source)
 
+    def test_inference_has_no_random_fallback_or_untrained_outputs(self):
+        source = (ROOT / "app.py").read_text(encoding="utf-8")
+        self.assertIn("check_model_readiness", source)
+        self.assertNotIn("Using random weights", source)
+        self.assertNotIn("severity_head", source)
+        self.assertNotIn("text_score", source)
+        self.assertNotIn("image_score", source)
+        self.assertNotIn("audio_score", source)
+        self.assertNotIn("confidence=", source)
+        self.assertIn("score_percent=score_percent", source)
+
+    def test_legacy_trainer_cannot_create_dummy_checkpoint(self):
+        source = (ROOT / "train_real.py").read_text(encoding="utf-8")
+        self.assertIn("raise SystemExit", source)
+        self.assertNotIn("DUMMY_TEXT", source)
+        self.assertNotIn("torch.save", source)
+        self.assertNotIn("optimizer.step()", source)
+
     def test_result_page_does_not_claim_modality_attribution_or_severity(self):
         source = (TEMPLATES / "result.html").read_text(encoding="utf-8")
         self.assertNotIn("Modality Contributions", source)
