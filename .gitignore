@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+ruff_cache/
+
+# Runtime content and personal data
+uploads/
+downloads/
+data/
+dataset/
+datasets/
+private_data/
+.env
+.env.*
+*.log
+
+# Model weights are not committed by default.
+# A candidate checkpoint must be deliberately reviewed alongside its manifest
+# and independent evaluation report before distribution.
+models/*.pt
+models/*.pth
+models/*.ckpt

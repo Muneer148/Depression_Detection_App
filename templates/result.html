@@ -1,697 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MindScope — Analysis Result</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>MindScope — Research Output</title>
   <style>
     :root {
-      --bg:         #f0f4f8;
-      --surface:    #ffffff;
-      --card:       #ffffff;
-      --card2:      #f7fafc;
-      --border:     #d1dce8;
-      --border-hi:  #a8bedb;
-      --accent:     #0e7c6a;
-      --accent2:    #1a9e87;
-      --accent3:    #06b6a0;
-      --glow:       rgba(14,124,106,0.08);
-      --glow2:      rgba(26,158,135,0.07);
-      --text:       #3d5166;
-      --text-dim:   #8da3b8;
-      --text-hi:    #1a2e3f;
-      --green:      #10b981;
-      --amber:      #d97706;
-      --red:        #ef4444;
-      --r:          14px;
-
-      --risk-color: {% if prediction == 'Depressed' %}#ef4444{% else %}#10b981{% endif %};
+      color-scheme: light;
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --ink: #172335;
+      --muted: #596b80;
+      --border: #d8e1ec;
+      --accent: #147d72;
+      --accent-soft: #e5f5f1;
+      --warning: #8a4a0b;
+      --warning-bg: #fff4df;
+      --shadow: 0 18px 55px rgba(25, 45, 70, .08);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* Dot grid — same as index */
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background-image: radial-gradient(circle, rgba(14,124,106,0.07) 1px, transparent 1px);
-      background-size: 28px 28px;
-      pointer-events: none; z-index: 0;
-    }
-
-    /* Ambient orbs */
-    .orb { position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none; z-index: 0; }
-    .orb-a { width:480px;height:480px;background:#a7f3d0;opacity:0.35;top:-160px;left:-120px; }
-    .orb-b { width:360px;height:360px;background:#bfdbfe;opacity:0.25;bottom:-100px;right:-80px; }
-    .orb-c { width:240px;height:240px;background:#99f6e4;opacity:0.20;top:40%;left:60%; }
-
-    .page {
-      position: relative; z-index: 1;
-      max-width: 900px; margin: 0 auto;
-      padding: 0 24px 100px;
-    }
-
-    /* ── HEADER ── */
-    header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 32px 0 40px;
-      border-bottom: 1px solid var(--border);
-      animation: fadeDown 0.7s ease both;
-    }
-
-    .brand { display: flex; align-items: center; gap: 16px; }
-
-    .brand-icon {
-      width: 48px; height: 48px;
-      background: linear-gradient(135deg, var(--accent), var(--accent3));
-      border-radius: 14px; display: grid; place-items: center;
-      font-size: 22px;
-      box-shadow: 0 4px 20px rgba(14,124,106,0.3);
-      flex-shrink: 0;
-    }
-
-    .brand-name {
-      font-family: 'Playfair Display', serif;
-      font-size: 24px; font-weight: 600;
-      color: var(--text-hi); letter-spacing: -0.5px;
-    }
-
-    .brand-sub {
-      font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
-      color: var(--text-dim); margin-top: 3px;
-    }
-
-    .back-btn {
-      display: flex; align-items: center; gap: 8px;
-      padding: 9px 18px;
-      background: transparent;
-      border: 1px solid var(--border-hi);
-      border-radius: 30px;
-      color: var(--text-dim);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
-      text-decoration: none;
-      transition: all 0.25s;
-    }
-    .back-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--glow); }
-
-    /* ── RESULT HERO ── */
-    .result-hero {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 32px; align-items: center;
-      padding: 52px 0 40px;
-      animation: fadeUp 0.7s 0.1s ease both;
-    }
-
-    .result-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
-      color: var(--accent); margin-bottom: 14px;
-    }
-
-    .result-verdict {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(2.4rem, 7vw, 4.2rem);
-      font-weight: 600;
-      line-height: 1.05;
-      letter-spacing: -1.5px;
-      color: var(--risk-color);
-      margin-bottom: 14px;
-    }
-
-    .result-sub {
-      font-size: 14px; color: var(--text-dim); line-height: 1.7;
-      max-width: 380px;
-    }
-
-    /* ── CONFIDENCE RING ── */
-    .ring-wrap {
-      position: relative; width: 150px; height: 150px; flex-shrink: 0;
-    }
-
-    .ring-svg { width: 150px; height: 150px; transform: rotate(-90deg); }
-    .ring-bg  { fill: none; stroke: var(--border); stroke-width: 8; }
-    .ring-fill {
-      fill: none;
-      stroke: var(--risk-color);
-      stroke-width: 8;
-      stroke-linecap: round;
-      stroke-dasharray: 408;
-      stroke-dashoffset: 408;
-      filter: drop-shadow(0 0 8px var(--risk-color));
-      transition: stroke-dashoffset 1.4s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .ring-inner {
-      position: absolute; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-    }
-
-    .ring-pct {
-      font-family: 'Playfair Display', serif;
-      font-size: 34px; font-weight: 600;
-      color: var(--text-hi); line-height: 1;
-    }
-
-    .ring-unit {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px; color: var(--text-dim); letter-spacing: 2px;
-      text-transform: uppercase; margin-top: 4px;
-    }
-
-    /* ── STATS ROW ── */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px; margin-bottom: 24px;
-      animation: fadeUp 0.7s 0.2s ease both;
-    }
-
-    .stat-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px; padding: 20px;
-      transition: border-color 0.25s, box-shadow 0.25s;
-    }
-    .stat-card:hover { border-color: var(--border-hi); box-shadow: 0 4px 16px var(--glow); }
-
-    .stat-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
-      color: var(--text-dim); margin-bottom: 10px;
-    }
-
-    .stat-val {
-      font-family: 'Playfair Display', serif;
-      font-size: 26px; font-weight: 600;
-      color: var(--text-hi); line-height: 1;
-    }
-
-    .stat-val.na { font-size: 18px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; letter-spacing: 2px; }
-
-    .stat-desc { font-size: 11px; color: var(--text-dim); margin-top: 6px; }
-
-    .sev-track {
-      height: 5px; background: var(--border);
-      border-radius: 5px; overflow: hidden; margin-top: 10px;
-    }
-    .sev-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--amber), var(--red));
-      border-radius: 5px; width: 0%;
-      transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    /* ── SECTION HEAD ── */
-    .section-head {
-      display: flex; align-items: center; gap: 12px;
-      margin-bottom: 18px;
-    }
-    .section-head-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
-    .section-head-text {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
-      color: var(--text-dim); white-space: nowrap;
-    }
-
-    /* ── MODALITY GRID ── */
-    .modality-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px; margin-bottom: 24px;
-      animation: fadeUp 0.7s 0.3s ease both;
-    }
-
-    .mod-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px; padding: 22px 18px;
-      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
-    }
-    .mod-card:hover { border-color: var(--border-hi); transform: translateY(-2px); box-shadow: 0 8px 24px var(--glow); }
-
-    .mod-card.mod-na {
-      opacity: 0.55;
-    }
-
-    .mod-icon { font-size: 26px; margin-bottom: 12px; }
-    .mod-name {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
-      color: var(--text-dim); margin-bottom: 8px;
-    }
-    .mod-score {
-      font-family: 'Playfair Display', serif;
-      font-size: 36px; font-weight: 600;
-      color: var(--text-hi); line-height: 1; margin-bottom: 4px;
-    }
-    .mod-score.na-score {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 16px; font-weight: 400;
-      color: var(--text-dim); letter-spacing: 2px;
-    }
-    .mod-score-unit { font-size: 16px; color: var(--text-dim); }
-    .mod-desc { font-size: 11px; color: var(--text-dim); margin-bottom: 12px; }
-
-    .mod-bar { height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; }
-    .mod-bar-fill {
-      height: 100%; border-radius: 4px; width: 0%;
-      transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .mod-bar-fill.text-bar  { background: linear-gradient(90deg, var(--accent), var(--accent3)); }
-    .mod-bar-fill.image-bar { background: linear-gradient(90deg, #0891b2, var(--accent)); }
-    .mod-bar-fill.audio-bar { background: linear-gradient(90deg, #7c3aed, var(--accent2)); }
-
-    .mod-na-badge {
-      display: inline-block;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px; letter-spacing: 1.5px;
-      text-transform: uppercase;
-      background: rgba(217,119,6,0.08);
-      border: 1px solid rgba(217,119,6,0.2);
-      color: var(--amber);
-      padding: 3px 10px; border-radius: 20px;
-      margin-bottom: 8px;
-    }
-
-    /* ── INPUT ECHO ── */
-    .input-echo {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px; padding: 20px 22px;
-      margin-bottom: 24px;
-      animation: fadeUp 0.7s 0.35s ease both;
-    }
-
-    .echo-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
-      color: var(--text-dim); margin-bottom: 10px;
-    }
-
-    .echo-text {
-      font-size: 14px; color: var(--text); line-height: 1.7;
-      font-style: italic;
-      border-left: 2px solid var(--border-hi); padding-left: 16px;
-    }
-
-    /* ── RISK METER ── */
-    .risk-meter {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px; padding: 24px;
-      margin-bottom: 24px;
-      animation: fadeUp 0.7s 0.4s ease both;
-    }
-
-    .meter-track {
-      height: 10px; background: var(--border);
-      border-radius: 10px; overflow: visible;
-      position: relative; margin: 16px 0 8px;
-    }
-
-    .meter-fill {
-      height: 100%; border-radius: 10px;
-      background: linear-gradient(90deg, var(--green), var(--amber), var(--red));
-      width: 0%;
-      transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1);
-      position: relative;
-    }
-
-    .meter-thumb {
-      position: absolute; right: -6px; top: 50%;
-      transform: translateY(-50%);
-      width: 18px; height: 18px; border-radius: 50%;
-      background: var(--risk-color);
-      border: 3px solid var(--bg);
-      box-shadow: 0 0 12px var(--risk-color);
-    }
-
-    .meter-labels {
-      display: flex; justify-content: space-between;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
-      color: var(--text-dim);
-    }
-
-    /* ── RECOMMENDATIONS ── */
-    .reco-section {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px; padding: 24px;
-      animation: fadeUp 0.7s 0.45s ease both;
-      margin-bottom: 24px;
-    }
-
-    .reco-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
-
-    .reco-item {
-      display: flex; align-items: flex-start; gap: 12px;
-      padding: 12px 16px;
-      background: var(--card2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font-size: 13px; color: var(--text); line-height: 1.5;
-      animation: fadeUp 0.5s ease both;
-      transition: border-color 0.2s;
-    }
-    .reco-item:hover { border-color: var(--border-hi); }
-
-    .reco-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--accent);
-      flex-shrink: 0; margin-top: 5px;
-    }
-
-    /* ── DISCLAIMER FOOTER ── */
-    .result-footer {
-      margin-top: 36px;
-      display: flex; flex-direction: column; align-items: center; gap: 16px;
-      animation: fadeUp 0.7s 0.5s ease both;
-    }
-
-    .disclaimer-box {
-      width: 100%;
-      background: rgba(217,119,6,0.05);
-      border: 1px solid rgba(217,119,6,0.2);
-      border-radius: 12px;
-      padding: 14px 20px;
-      font-size: 12px; color: var(--amber);
-      line-height: 1.6; text-align: center;
-    }
-
-    /* ── MODALITIES USED BADGE ROW ── */
-    .used-row {
-      display: flex; gap: 8px; flex-wrap: wrap;
-      margin-bottom: 24px;
-      animation: fadeUp 0.7s 0.15s ease both;
-    }
-
-    .used-pill {
-      display: flex; align-items: center; gap: 6px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
-      padding: 6px 14px; border-radius: 30px;
-      border: 1px solid var(--border-hi);
-    }
-    .used-pill.active {
-      background: var(--glow); color: var(--accent);
-      border-color: var(--accent);
-    }
-    .used-pill.inactive {
-      background: transparent; color: var(--text-dim);
-    }
-    .used-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-    }
-    .used-pill.active .used-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
-    .used-pill.inactive .used-dot { background: var(--text-dim); }
-
-    /* ── ANIMATIONS ── */
-    @keyframes fadeDown {
-      from { opacity:0; transform:translateY(-14px); }
-      to   { opacity:1; transform:translateY(0); }
-    }
-    @keyframes fadeUp {
-      from { opacity:0; transform:translateY(14px); }
-      to   { opacity:1; transform:translateY(0); }
-    }
-
-    @media (max-width: 640px) {
-      .result-hero { grid-template-columns: 1fr; }
-      .ring-wrap { margin: 0 auto; }
-      .stats-row, .modality-grid { grid-template-columns: 1fr; }
-      .result-verdict { font-size: 2.8rem; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); }
+    .page { max-width: 840px; margin: 0 auto; padding: 28px 18px 60px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0 26px; border-bottom: 1px solid var(--border); }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 13px; color: white; background: var(--accent); font-size: 22px; }
+    .brand-name { font-size: 21px; font-weight: 800; letter-spacing: -.4px; }
+    .brand-sub { color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .status { border: 1px solid var(--border); border-radius: 999px; background: white; padding: 8px 11px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+    main { padding-top: 26px; }
+    .eyebrow { color: var(--accent); text-transform: uppercase; letter-spacing: 1.7px; font-size: 11px; font-weight: 800; }
+    h1 { margin: 8px 0 12px; font-size: clamp(27px, 5vw, 40px); letter-spacing: -1.2px; line-height: 1.13; overflow-wrap: anywhere; }
+    .lede { max-width: 690px; margin: 0; color: var(--muted); line-height: 1.7; }
+    .notice { margin-top: 22px; padding: 15px 17px; border: 1px solid #ebcb89; border-radius: 13px; background: var(--warning-bg); color: #62380b; line-height: 1.6; }
+    .notice strong { display: block; margin-bottom: 4px; }
+    .grid { margin-top: 22px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); padding: 18px; min-width: 0; }
+    .label { color: var(--muted); text-transform: uppercase; letter-spacing: 1.1px; font-size: 10px; font-weight: 800; }
+    .value { margin-top: 10px; font-size: 17px; line-height: 1.4; font-weight: 750; overflow-wrap: anywhere; }
+    .small { margin-top: 7px; color: var(--muted); line-height: 1.55; font-size: 12px; }
+    .section { margin-top: 28px; }
+    h2 { font-size: 18px; margin: 0 0 12px; }
+    .modalities { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .modality { padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; }
+    .modality h3 { margin: 0 0 6px; font-size: 14px; }
+    .modality p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .provided { margin-top: 10px; color: var(--accent); font-size: 12px; font-weight: 750; }
+    .not-provided { margin-top: 10px; color: var(--muted); font-size: 12px; font-weight: 650; }
+    .echo { margin-top: 18px; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+    .echo-text { margin-top: 8px; color: var(--muted); line-height: 1.6; overflow-wrap: anywhere; white-space: pre-wrap; }
+    footer { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; }
+    .footer-note { max-width: 520px; font-size: 12px; line-height: 1.6; color: var(--muted); }
+    a.button { display: inline-block; padding: 12px 18px; border-radius: 11px; background: var(--accent); color: white; font-size: 13px; font-weight: 750; text-decoration: none; }
+    a.button:focus-visible { outline: 3px solid #72b9b0; outline-offset: 3px; }
+    @media (max-width: 620px) {
+      .grid, .modalities { grid-template-columns: 1fr; }
+      header { align-items: flex-start; }
+      .status { white-space: normal; }
     }
   </style>
 </head>
 <body>
-
-<div class="orb orb-a"></div>
-<div class="orb orb-b"></div>
-<div class="orb orb-c"></div>
-
-<div class="page">
-
-  <!-- HEADER -->
-  <header>
-    <div class="brand">
-      <div class="brand-icon">🧠</div>
-      <div>
-        <div class="brand-name">MindScope</div>
-        <div class="brand-sub">Analysis Complete</div>
-      </div>
-    </div>
-    <a href="/" class="back-btn">← New Analysis</a>
-  </header>
-
-  <!-- MODALITIES USED -->
-  <div class="used-row">
-    <div class="used-pill {% if text_input and text_input != 'N/A' %}active{% else %}inactive{% endif %}">
-      <div class="used-dot"></div>📝 Text
-    </div>
-    <div class="used-pill {% if has_image %}active{% else %}inactive{% endif %}">
-      <div class="used-dot"></div>🖼 Image
-    </div>
-    <div class="used-pill {% if has_audio %}active{% else %}inactive{% endif %}">
-      <div class="used-dot"></div>🎤 Speech
-    </div>
-  </div>
-
-  <!-- HERO -->
-  <div class="result-hero">
-    <div>
-      <div class="result-label">Model Prediction</div>
-      <div class="result-verdict">{{ prediction }}</div>
-      <div class="result-sub">
-        {% set active_count = [0] %}
-        {% if text_input and text_input != 'N/A' %}{% set _ = active_count.append(1) %}{% endif %}
-        {% if has_image %}{% set _ = active_count.append(1) %}{% endif %}
-        {% if has_audio %}{% set _ = active_count.append(1) %}{% endif %}
-        The multimodal model analysed
-        <strong style="color:var(--text-hi)">{{ active_count | length }} modality{% if active_count | length != 1 %}ies{% endif %}</strong>
-        and returned the above classification with
-        <strong style="color:var(--text-hi)">{{ confidence }}% confidence</strong>.
-      </div>
-    </div>
-
-    <div class="ring-wrap">
-      <svg class="ring-svg" viewBox="0 0 150 150">
-        <circle class="ring-bg" cx="75" cy="75" r="65"/>
-        <circle class="ring-fill" id="ringFill" cx="75" cy="75" r="65"/>
-      </svg>
-      <div class="ring-inner">
-        <div class="ring-pct" id="ringPct">0%</div>
-        <div class="ring-unit">Confidence</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- STATS ROW -->
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-label">Risk Level</div>
-      <div class="stat-val" style="color:var(--risk-color)">{{ risk }}</div>
-      <div class="stat-desc">Overall classification risk</div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-label">Severity Score</div>
-      {% if severity == 'N/A' %}
-        <div class="stat-val na">N/A</div>
-        <div class="stat-desc">No modalities provided</div>
-      {% else %}
-        <div class="stat-val">{{ severity }}<span style="font-size:14px;color:var(--text-dim)"> / 1</span></div>
-        <div class="stat-desc">Regression head output</div>
-        <div class="sev-track">
-          <div class="sev-fill" id="sevFill"></div>
+  <div class="page">
+    <header>
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">M</div>
+        <div>
+          <div class="brand-name">MindScope</div>
+          <div class="brand-sub">Multimodal research prototype</div>
         </div>
-      {% endif %}
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-label">Model Fusion</div>
-      {% set cnt = 0 %}
-      {% if text_input and text_input != 'N/A' %}{% set cnt = cnt + 1 %}{% endif %}
-      {% if has_image %}{% set cnt = cnt + 1 %}{% endif %}
-      {% if has_audio %}{% set cnt = cnt + 1 %}{% endif %}
-      <div class="stat-val" style="color:var(--accent)">{{ cnt }}</div>
-      <div class="stat-desc">Active modalities fused</div>
-    </div>
-  </div>
-
-  <!-- MODALITY BREAKDOWN -->
-  <div class="section-head">
-    <div class="section-head-text">Modality Contributions</div>
-    <div class="section-head-line"></div>
-  </div>
-
-  <div class="modality-grid">
-
-    <!-- TEXT -->
-    <div class="mod-card {% if not text_input or text_input == 'N/A' %}mod-na{% endif %}">
-      <div class="mod-icon">📝</div>
-      <div class="mod-name">Text · BERT</div>
-      {% if text_input and text_input != 'N/A' %}
-        <div class="mod-score">{{ text_score if text_score is defined else '—' }}<span class="mod-score-unit">%</span></div>
-        <div class="mod-desc">Linguistic cues via BERT pooler</div>
-        <div class="mod-bar"><div class="mod-bar-fill text-bar" data-target="{{ text_score if text_score is defined else 0 }}"></div></div>
-      {% else %}
-        <div class="mod-na-badge">Not Provided</div>
-        <div class="mod-score na-score">N / A</div>
-        <div class="mod-desc">No text input given</div>
-        <div class="mod-bar"><div class="mod-bar-fill text-bar" data-target="0"></div></div>
-      {% endif %}
-    </div>
-
-    <!-- IMAGE -->
-    <div class="mod-card {% if not has_image %}mod-na{% endif %}">
-      <div class="mod-icon">🖼️</div>
-      <div class="mod-name">Image · ResNet-50</div>
-      {% if has_image %}
-        <div class="mod-score">{{ image_score if image_score is defined else '—' }}<span class="mod-score-unit">%</span></div>
-        <div class="mod-desc">Facial expression features</div>
-        <div class="mod-bar"><div class="mod-bar-fill image-bar" data-target="{{ image_score if image_score is defined else 0 }}"></div></div>
-      {% else %}
-        <div class="mod-na-badge">Not Provided</div>
-        <div class="mod-score na-score">N / A</div>
-        <div class="mod-desc">No image uploaded or captured</div>
-        <div class="mod-bar"><div class="mod-bar-fill image-bar" data-target="0"></div></div>
-      {% endif %}
-    </div>
-
-    <!-- AUDIO -->
-    <div class="mod-card {% if not has_audio %}mod-na{% endif %}">
-      <div class="mod-icon">🎤</div>
-      <div class="mod-name">Speech · Wav2Vec2</div>
-      {% if has_audio %}
-        <div class="mod-score">{{ audio_score if audio_score is defined else '—' }}<span class="mod-score-unit">%</span></div>
-        <div class="mod-desc">Acoustic & prosodic patterns</div>
-        <div class="mod-bar"><div class="mod-bar-fill audio-bar" data-target="{{ audio_score if audio_score is defined else 0 }}"></div></div>
-      {% else %}
-        <div class="mod-na-badge">Not Provided</div>
-        <div class="mod-score na-score">N / A</div>
-        <div class="mod-desc">No audio uploaded or recorded</div>
-        <div class="mod-bar"><div class="mod-bar-fill audio-bar" data-target="0"></div></div>
-      {% endif %}
-    </div>
-
-  </div>
-
-  <!-- INPUT ECHO -->
-  {% if text_input and text_input != 'N/A' %}
-  <div class="input-echo">
-    <div class="echo-label">Text Input (truncated)</div>
-    <div class="echo-text">"{{ text_input }}"</div>
-  </div>
-  {% endif %}
-
-  <!-- RISK METER -->
-  <div class="risk-meter">
-    <div class="section-head-text">Risk Gauge</div>
-    <div class="meter-track">
-      <div class="meter-fill" id="meterFill"
-           data-pct="{{ confidence if prediction == 'Depressed' else (100 - confidence) }}">
-        <div class="meter-thumb"></div>
       </div>
-    </div>
-    <div class="meter-labels">
-      <span>Minimal</span>
-      <span>Moderate</span>
-      <span>Severe</span>
-    </div>
-  </div>
+      <div class="status">Research output · Not clinical</div>
+    </header>
 
-  <!-- RECOMMENDATIONS -->
-  <div class="reco-section">
-    <div class="section-head-text">Suggested Next Steps</div>
-    <ul class="reco-list">
-      {% if prediction == 'Depressed' %}
-        <li class="reco-item" style="animation-delay:0.05s"><div class="reco-dot" style="background:var(--red)"></div>Please consider consulting a licensed mental health professional as soon as possible.</li>
-        <li class="reco-item" style="animation-delay:0.1s"><div class="reco-dot"></div>iCall Helpline (India): <strong>9152987821</strong></li>
-        <li class="reco-item" style="animation-delay:0.15s"><div class="reco-dot"></div>Vandrevala Foundation: <strong>1860-2662-345</strong> (24/7)</li>
-        <li class="reco-item" style="animation-delay:0.2s"><div class="reco-dot"></div>NIMHANS Helpline: <strong>080-46110007</strong></li>
-        <li class="reco-item" style="animation-delay:0.25s"><div class="reco-dot"></div>Reach out to a trusted person in your life today and share how you are feeling.</li>
-      {% else %}
-        <li class="reco-item" style="animation-delay:0.05s"><div class="reco-dot" style="background:var(--green)"></div>Continue maintaining your current healthy routines and habits.</li>
-        <li class="reco-item" style="animation-delay:0.1s"><div class="reco-dot"></div>Stay connected with friends and family — social bonds protect mental health.</li>
-        <li class="reco-item" style="animation-delay:0.15s"><div class="reco-dot"></div>Regular physical activity (30 min/day) significantly reduces depression risk.</li>
-        <li class="reco-item" style="animation-delay:0.2s"><div class="reco-dot"></div>Practice mindfulness, journalling, or another reflective habit.</li>
-        <li class="reco-item" style="animation-delay:0.25s"><div class="reco-dot"></div>Monitor changes in mood over time and repeat this assessment if needed.</li>
+    <main>
+      <div class="eyebrow">Experimental model output</div>
+      <h1>{{ prediction | e }}</h1>
+      <p class="lede">
+        This is the output label from the configured research model for the submitted input.
+        It is not a diagnosis, screening decision, or reliable statement about a person's mental health.
+      </p>
+
+      <div class="notice" role="note">
+        <strong>Important limitation</strong>
+        The displayed score is an uncalibrated model score, not a clinical probability.
+        Do not use this result to diagnose or rule out depression or to make treatment decisions.
+        If you are concerned about your mental health, consider speaking with a qualified professional.
+      </div>
+
+      <div class="grid" aria-label="Model output details">
+        <section class="card">
+          <div class="label">Output label</div>
+          <div class="value">{{ prediction | e }}</div>
+          <div class="small">Label mapping supplied by the reviewed model manifest.</div>
+        </section>
+        <section class="card">
+          <div class="label">Uncalibrated score</div>
+          <div class="value">{{ score_percent }}%</div>
+          <div class="small">Softmax score only; calibration and clinical meaning have not been established.</div>
+        </section>
+        <section class="card">
+          <div class="label">Severity</div>
+          <div class="value">Not available</div>
+          <div class="small">No severity value is displayed until a valid target, training loss and evaluation protocol exist.</div>
+        </section>
+      </div>
+
+      <section class="section">
+        <h2>Inputs used for this run</h2>
+        <p class="lede" style="margin-bottom:14px">Availability is shown below. This page does not claim to measure how much each modality influenced the output.</p>
+        <div class="modalities">
+          <div class="modality">
+            <h3>Text · BERT</h3>
+            <p>Text input supplied to the text encoder.</p>
+            <div class="{{ 'provided' if text_input and text_input != 'N/A' else 'not-provided' }}">
+              {{ 'Provided' if text_input and text_input != 'N/A' else 'Not provided' }}
+            </div>
+          </div>
+          <div class="modality">
+            <h3>Image · ResNet-50</h3>
+            <p>Image file supplied to the visual encoder.</p>
+            <div class="{{ 'provided' if has_image else 'not-provided' }}">
+              {{ 'Provided' if has_image else 'Not provided' }}
+            </div>
+          </div>
+          <div class="modality">
+            <h3>Audio · Wav2Vec2</h3>
+            <p>Audio file supplied to the audio encoder.</p>
+            <div class="{{ 'provided' if has_audio else 'not-provided' }}">
+              {{ 'Provided' if has_audio else 'Not provided' }}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {% if text_input and text_input != 'N/A' %}
+      <section class="echo">
+        <div class="label">Text submitted (preview)</div>
+        <div class="echo-text">{{ text_input | e }}</div>
+      </section>
       {% endif %}
-    </ul>
+
+      <footer>
+        <div class="footer-note">
+          Research/learning prototype only. Predictions are disabled unless a reviewed model manifest,
+          matching checkpoint and independent validation report are present.
+        </div>
+        <a href="/" class="button">← Return to MindScope</a>
+      </footer>
+    </main>
   </div>
-
-  <!-- FOOTER -->
-  <div class="result-footer">
-    <div class="disclaimer-box">
-      ⚠ This is a research tool only and does not constitute a clinical diagnosis.
-      Results may be inaccurate, especially without a trained model checkpoint.
-      Always consult a qualified mental health professional for medical advice.
-    </div>
-    <a href="/" class="back-btn" style="padding:12px 32px;font-size:13px;">← Run Another Analysis</a>
-  </div>
-
-</div>
-
-<script>
-  const confidence = {{ confidence }};
-  const severity   = {{ severity if severity != 'N/A' else 'null' }};
-
-  window.addEventListener('load', () => {
-    const circumference = 2 * Math.PI * 65;
-    const ring  = document.getElementById('ringFill');
-    const pctEl = document.getElementById('ringPct');
-    const target = circumference * (1 - confidence / 100);
-
-    setTimeout(() => { ring.style.strokeDashoffset = target; }, 100);
-
-    /* Count-up animation */
-    let start = 0;
-    const dur = 1400;
-    const step = (ts) => {
-      if (!start) start = ts;
-      const progress = Math.min((ts - start) / dur, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      pctEl.textContent = Math.round(eased * confidence) + '%';
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-
-    /* Severity bar */
-    const sevEl = document.getElementById('sevFill');
-    if (sevEl && severity !== null) {
-      setTimeout(() => { sevEl.style.width = Math.min(Math.abs(severity) * 100, 100) + '%'; }, 200);
-    }
-
-    /* Modality bars */
-    document.querySelectorAll('.mod-bar-fill').forEach((el, i) => {
-      setTimeout(() => {
-        el.style.width = (el.dataset.target || 0) + '%';
-      }, 200 + i * 80);
-    });
-
-    /* Risk meter */
-    const meter = document.getElementById('meterFill');
-    if (meter) {
-      const pct = parseFloat(meter.dataset.pct) || 50;
-      setTimeout(() => { meter.style.width = Math.min(pct, 100) + '%'; }, 200);
-    }
-  });
-</script>
-
 </body>
 </html>

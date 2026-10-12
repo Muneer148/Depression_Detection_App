@@ -1,19 +1,30 @@
-FROM python:3.9-slim
+FROM python:3.11-slim
 
-# Install audio tools the AI needs
-RUN apt-get update && apt-get install -y libsndfile1 ffmpeg libgl1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg libsndfile1 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install your Python libraries
-COPY requirements.txt .
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Explicitly tell Docker to make sure the templates folder is in the right spot
-COPY templates/ /app/templates/
+# Copy only runtime code and supporting audit docs. Raw data and old uploads
+# are excluded from the build context through .dockerignore.
+COPY app.py model_gate.py check_data.py train_real.py ./
+COPY scripts/ ./scripts/
+COPY templates/ ./templates/
+COPY models/ ./models/
+COPY docs/ ./docs/
 
-# Copy all your project files
-COPY . .
+RUN useradd --create-home --shell /usr/sbin/nologin appuser \
+    && mkdir -p /app/uploads \
+    && chown -R appuser:appuser /app
+USER appuser
 
-# Start the app
-CMD ["python", "app.py"]
+EXPOSE 7860
+CMD ["sh", "-c", "exec gunicorn --bind 0.0.0.0:${PORT:-7860} --workers 1 --threads 2 --timeout 180 app:app"]

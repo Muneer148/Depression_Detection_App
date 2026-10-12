@@ -1,14 +1,5 @@
-import glob
-import os
+"""Backward-compatible entry point for the dataset audit utility."""
+from scripts.audit_dataset import main
 
-data_root = "data/depression-dataset"
-
-print("Current working directory:", os.getcwd())
-print("Looking for wav files in:", os.path.abspath(data_root))
-
-for folder in ["depression1", "depression2", "normal1", "normal2"]:
-    path = os.path.join(data_root, folder, "*.wav")
-    files = glob.glob(path)
-    print(f"{folder}: {len(files)} files found")
-    if files:
-        print("   Example:", files[0])
+if __name__ == "__main__":
+    raise SystemExit(main())
