@@ -38,7 +38,7 @@ Use Python 3.11 or newer, then:
 ```bash
 python -m venv .venv
 # Windows:
- .venv\\Scripts\\activate
+.venv\Scripts\activate
 # Linux/macOS:
 source .venv/bin/activate
 
