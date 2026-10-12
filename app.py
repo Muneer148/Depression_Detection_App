@@ -175,6 +175,7 @@ def home():
         "index.html",
         model_ready=MODEL_READY,
         model_status=MODEL_STATUS,
+        model_task=model_manifest.get("task") if model_manifest else None,
     )
 
 
