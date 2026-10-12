@@ -48,8 +48,7 @@ class MultimodalDepressionModel(torch.nn.Module):
             torch.nn.ReLU(),
             torch.nn.Dropout(0.2),
         )
-        self.class_head    = torch.nn.Linear(256, 2)
-        self.severity_head = torch.nn.Linear(256, 1)
+        self.class_head = torch.nn.Linear(256, 2)
 
     def forward(self, text_inputs, image, audio):
         # Determine batch size from whatever is available
@@ -82,9 +81,7 @@ class MultimodalDepressionModel(torch.nn.Module):
 
         fused    = torch.cat([text_emb, img_emb, audio_emb], dim=1)
         features = self.fusion(fused)
-        logits   = self.class_head(features)
-        severity = self.severity_head(features).squeeze(-1)
-        return logits, severity
+        return self.class_head(features)
 
 
 # ────────────────────────────────────────────────
@@ -257,10 +254,10 @@ def predict():
                 return jsonify({"error": "The audio could not be decoded. Try a WAV, MP3, M4A, OGG, WebM or FLAC file."}), 400
 
         with torch.inference_mode():
-            logits, _severity_output = model(text_inputs, image_tensor, audio_tensor)
+            logits = model(text_inputs, image_tensor, audio_tensor)
             probabilities = F.softmax(logits, dim=-1)
             predicted_class = int(torch.argmax(probabilities, dim=-1).item())
-            model_score = round(float(probabilities[0][predicted_class].item()) * 100, 1)
+            score_percent = round(float(probabilities[0][predicted_class].item()) * 100, 1)
 
         class_names = model_manifest["labels"]["class_names"]
         prediction = class_names[predicted_class]
@@ -271,15 +268,10 @@ def predict():
         return render_template(
             "result.html",
             prediction=prediction,
-            confidence=model_score,
-            risk="Not assessed",
-            severity="N/A",
+            score_percent=score_percent,
             text_input=(text[:100] + "…" if len(text) > 100 else text) if has_text else "N/A",
             has_image=has_image,
             has_audio=has_audio,
-            text_score=None,
-            image_score=None,
-            audio_score=None,
         )
 
     except ValueError as exc:
