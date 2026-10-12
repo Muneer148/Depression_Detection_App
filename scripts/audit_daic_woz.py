@@ -117,9 +117,13 @@ def _inspect_split(path: Path) -> dict[str, Any]:
                 else:
                     unlabelled_rows += 1
 
-                if binary_col and score_col and binary is not None and score is not None:
-                    # Official PHQ-8 binary target is commonly thresholded at score >= 10.
-                    # Report disagreement for review; never silently rewrite the labels.
+                if (
+                    binary_col and score_col
+                    and binary in (0, 1)
+                    and score is not None and 0 <= score <= 24
+                ):
+                    # Compare only values in the documented domains. Invalid values
+                    # are counted separately and should not inflate disagreement counts.
                     if binary != int(score >= 10):
                         inconsistent += 1
 
