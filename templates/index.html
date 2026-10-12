@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MindScope — Multimodal Depression Detection</title>
+  <title>MindScope — Multimodal Research Prototype</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
   <style>
@@ -125,6 +125,16 @@
       background: var(--green);
       box-shadow: 0 0 8px var(--green);
       animation: blink 2s infinite;
+    }
+    .status-pill.unavailable {
+      border-color: #e7bf76;
+      background: #fff4df;
+      color: #8a4a0b;
+    }
+    .status-pill.unavailable .status-dot {
+      background: #d97706;
+      box-shadow: none;
+      animation: none;
     }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
@@ -840,18 +850,18 @@
       <div class="brand-icon">🧠</div>
       <div>
         <div class="brand-name">MindScope</div>
-        <div class="brand-sub">Multimodal Depression Detection</div>
+        <div class="brand-sub">Multimodal research prototype</div>
       </div>
     </div>
-    <div class="status-pill">
+    <div class="status-pill {{ 'ready' if model_ready else 'unavailable' }}" role="status">
       <div class="status-dot"></div>
-      {% if model_ready %}Research Model Ready{% else %}Model Unavailable{% endif %}
+      {% if model_ready %}Reviewed Model Ready{% else %}Inference Disabled{% endif %}
     </div>
   </header>
 
   <!-- HERO -->
   <div class="hero">
-    <div class="hero-label">BERT · ResNet-50 · Wav2Vec2</div>
+    <div class="hero-label">{% if model_ready %}{{ model_task | e }}{% else %}Research experiment · model not configured{% endif %}</div>
     <h1>How are you <em>feeling</em><br>right now?</h1>
     <p class="hero-desc">
       Share text, an image, or a voice recording for a research experiment.
