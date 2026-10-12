@@ -62,6 +62,10 @@ class DaicWozAuditTests(unittest.TestCase):
         self.assertEqual(report["inconsistent_binary_score_pairs"], 1)
         self.assertEqual(report["invalid_binary_values"], 1)
         self.assertEqual(report["invalid_scores"], 1)
+        self.assertEqual(report["class_counts"], {"0": 1})
+        self.assertEqual(report["labelled_rows"], 1)
+        self.assertEqual(report["score_labelled_rows"], 1)
+        self.assertEqual(report["score_unlabelled_rows"], 1)
 
     def test_reads_zip_central_directory_for_modalities_without_extracting(self):
         archive = self.root / "301_P.zip"
@@ -69,12 +73,14 @@ class DaicWozAuditTests(unittest.TestCase):
             zf.writestr("301_P/301_TRANSCRIPT.csv", "start_time,duration,speaker,value\n")
             zf.writestr("301_P/301_AUDIO.wav", b"metadata only")
             zf.writestr("301_P/301_VIDEO.mp4", b"metadata only")
+            zf.writestr("301_P/301_CLNF_AUs.csv", "frame,AU01\n")
         report = audit_daic_woz(self.root)
         self.assertEqual(report["media"]["participant_archives_found"], 1)
         self.assertEqual(report["media"]["valid_zip_archives_opened"], 1)
         self.assertEqual(report["media"]["archives_with_transcript"], 1)
         self.assertEqual(report["media"]["archives_with_audio"], 1)
         self.assertEqual(report["media"]["archives_with_video"], 1)
+        self.assertEqual(report["media"]["archives_with_facial_features"], 1)
 
     def test_rejects_missing_root(self):
         with self.assertRaises(FileNotFoundError):
