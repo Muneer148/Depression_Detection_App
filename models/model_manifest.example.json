@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "model_version": "",
+  "task": "",
+  "intended_use": "research_only",
+  "validated_for_inference": false,
+  "checkpoint_sha256": "",
+  "dataset": {
+    "name": "",
+    "source_url": ""
+  },
+  "labels": {
+    "definition": "",
+    "class_names": []
+  },
+  "evaluation": {
+    "independent_test": false,
+    "split_unit": "",
+    "metrics": {
+      "f1": null,
+      "roc_auc": null
+    }
+  },
+  "validation_report_path": "docs/validation-report.json"
+}
