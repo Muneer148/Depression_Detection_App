@@ -80,6 +80,8 @@ def _inspect_split(path: Path) -> dict[str, Any]:
             rows = 0
             labelled_rows = 0
             unlabelled_rows = 0
+            score_labelled_rows = 0
+            score_unlabelled_rows = 0
             classes: Counter[str] = Counter()
             observed_scores: list[int] = []
             invalid_binary = 0
@@ -110,12 +112,17 @@ def _inspect_split(path: Path) -> dict[str, Any]:
                     if score is not None and 0 <= score <= 24:
                         observed_scores.append(score)
 
-                has_target = binary is not None if binary_col else False
+                has_target = binary in (0, 1) if binary_col else False
                 if has_target:
                     labelled_rows += 1
                     classes[str(binary)] += 1
                 else:
                     unlabelled_rows += 1
+
+                if score_col and score is not None and 0 <= score <= 24:
+                    score_labelled_rows += 1
+                else:
+                    score_unlabelled_rows += 1
 
                 if (
                     binary_col and score_col
@@ -136,6 +143,10 @@ def _inspect_split(path: Path) -> dict[str, Any]:
                 "has_phq8_scores": score_col is not None,
                 "labelled_rows": labelled_rows,
                 "unlabelled_rows": unlabelled_rows,
+                "binary_labelled_rows": labelled_rows,
+                "binary_unlabelled_rows": unlabelled_rows,
+                "score_labelled_rows": score_labelled_rows,
+                "score_unlabelled_rows": score_unlabelled_rows,
                 "class_counts": dict(sorted(classes.items())),
                 "score_range": [min(observed_scores), max(observed_scores)] if observed_scores else None,
                 "invalid_binary_values": invalid_binary,
@@ -150,6 +161,8 @@ def _inspect_split(path: Path) -> dict[str, Any]:
             "present": True, "readable": False, "rows": 0,
             "has_participant_id": False, "has_binary_labels": False,
             "has_phq8_scores": False, "labelled_rows": 0, "unlabelled_rows": 0,
+            "binary_labelled_rows": 0, "binary_unlabelled_rows": 0,
+            "score_labelled_rows": 0, "score_unlabelled_rows": 0,
             "class_counts": {}, "score_range": None, "invalid_binary_values": 0,
             "invalid_scores": 0, "inconsistent_binary_score_pairs": 0,
             "error": type(exc).__name__, "_participant_ids": set(),
@@ -170,15 +183,23 @@ def _archive_media_summary(root: Path) -> dict[str, Any]:
             with zipfile.ZipFile(archive) as zf:
                 zip_archives += 1
                 members = zf.infolist()
-                has_transcript = any(name.lower().endswith("_transcript.csv") for name in (m.filename for m in members))
-                has_audio = any(name.lower().endswith("_audio.wav") for name in (m.filename for m in members))
-                has_video = any(name.lower().endswith(("_video.mp4", "_video.avi", "_video.mov", "_video.mkv")) for name in (m.filename for m in members))
+                lower_names = [m.filename.lower() for m in members]
+                has_transcript = any(name.endswith("_transcript.csv") for name in lower_names)
+                has_audio = any(name.endswith("_audio.wav") for name in lower_names)
+                has_video = any(name.endswith(("_video.mp4", "_video.avi", "_video.mov", "_video.mkv")) for name in lower_names)
+                has_facial_features = any(name.endswith((
+                    "_clnf_features.txt", "_clnf_features3d.txt", "_clnf_aus.txt",
+                    "_clnf_aus.csv", "_clnf_gaze.txt", "_clnf_pose.txt",
+                    "_covarep.csv", "_formant.csv",
+                )) for name in lower_names)
                 if has_transcript:
                     modality_counts["archives_with_transcript"] += 1
                 if has_audio:
                     modality_counts["archives_with_audio"] += 1
                 if has_video:
                     modality_counts["archives_with_video"] += 1
+                if has_facial_features:
+                    modality_counts["archives_with_facial_features"] += 1
         except (OSError, zipfile.BadZipFile):
             broken_archives += 1
 
@@ -194,6 +215,7 @@ def _archive_media_summary(root: Path) -> dict[str, Any]:
         "archives_with_transcript": modality_counts["archives_with_transcript"],
         "archives_with_audio": modality_counts["archives_with_audio"],
         "archives_with_video": modality_counts["archives_with_video"],
+        "archives_with_facial_features": modality_counts["archives_with_facial_features"],
         "extracted_participant_directories": len(extracted_dirs),
         "_archive_ids": archive_ids,
         "_extracted_directory_ids": {PARTICIPANT_RE.match(name).group(1) for name in extracted_dirs},
@@ -283,6 +305,7 @@ def main() -> int:
         print(f"Archives with transcripts: {report['media']['archives_with_transcript']}")
         print(f"Archives with audio: {report['media']['archives_with_audio']}")
         print(f"Archives with video: {report['media']['archives_with_video']}")
+        print(f"Archives with facial-feature files: {report['media']['archives_with_facial_features']}")
         print(f"Broken archives: {report['media']['broken_or_unreadable_archives']}")
         print("This is a structural audit only; it does not extract or upload participant media.")
     return 0
