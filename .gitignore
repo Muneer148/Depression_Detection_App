@@ -7,10 +7,20 @@ venv/
 .mypy_cache/
 ruff_cache/
 
-# Runtime uploads and temporary outputs
+# Runtime content and personal data
 uploads/
+downloads/
+data/
+dataset/
+datasets/
+private_data/
+.env
+.env.*
 *.log
 
-# Model weights are not committed by default. A candidate checkpoint must be
-# intentionally reviewed with its matching manifest and evaluation report.
+# Model weights are not committed by default.
+# A candidate checkpoint must be deliberately reviewed alongside its manifest
+# and independent evaluation report before distribution.
 models/*.pt
+models/*.pth
+models/*.ckpt
