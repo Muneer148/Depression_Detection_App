@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+ruff_cache/
+
+# Runtime uploads and temporary outputs
+uploads/
+*.log
+
+# Model weights are not committed by default. A candidate checkpoint must be
+# intentionally reviewed with its matching manifest and evaluation report.
+models/*.pt
