@@ -242,7 +242,7 @@ def audit_daic_woz(root_dir: str | Path) -> dict[str, Any]:
         public_splits[kind] = {key: item for key, item in value.items() if not key.startswith("_")}
 
     return {
-        "root": str(root.resolve()),
+        "root_directory_name": root.name,
         "split_tables_found": sorted(found_split_paths),
         "splits": public_splits,
         "participant_overlap_counts": overlap_counts,
@@ -270,7 +270,7 @@ def main() -> int:
     if args.json:
         print(json.dumps(report, indent=2))
     else:
-        print(f"Dataset root exists: {report['root']}")
+        print(f"Data root folder name: {report['root_directory_name']}")
         print(f"Split tables found: {', '.join(report['split_tables_found']) or 'none'}")
         for kind, entry in report["splits"].items():
             print(
